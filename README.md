@@ -24,5 +24,9 @@ Os sensores analógicos retornam valores brutos (0 a 4095) baseados na voltagem.
   * `> 2500` = Sol Direto
 
 ## 🚀 Próximos Passos (Data Engineering)
-- [ ] Modelagem dimensional e calibração dos sensores usando SQL/dbt (Camada Silver/Gold).
-- [ ] Criação de painel de visualização (BI) com Metabase ou Power BI.
+- [ ] Modelagem Botânica (API -> Dimensão): * Criar a tabela dim_plantas no Supabase.
+        Escrever um script Python local para extrair os limites de água e luz de uma API botânica e carregar nessa tabela.
+- [ ] Calibração e Cruzamento (Camada Gold): Fazer a matemática no SQL (Regra de Três para o solo) e cruzar as leituras da Tabela Fato (ESP32) com a Tabela Dimensão (dim_plantas).
+- [ ] Transformação Profissional (dbt): Migrar esta lógica para o dbt, versionando o pipeline de transformação.
+- [ ] Visualização de Dados (Power BI / Metabase): Ligar a ferramenta de BI diretamente à Camada Gold do Supabase para construir o dashboard de monitorização e alertas visuais.
+- [ ] Documentação: Manter o README.md atualizado com o diagrama desta arquitetura.
