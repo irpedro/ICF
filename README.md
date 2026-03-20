@@ -12,6 +12,17 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 * `/main.py`: O código principal de produção otimizado para a placa.
 * `/poc/`: Provas de conceito e testes isolados de hardware (Display I2C, Testes de Wi-Fi).
 
+## 📐 Calibração e Regras de Negócio (Camada Gold)
+Os sensores analógicos retornam valores brutos (0 a 4095) baseados na voltagem. Para gerar métricas amigáveis para o usuário final, aplicamos as seguintes transformações em SQL (via dbt):
+
+* **Umidade do Solo:** Interpolação linear (Regra de Três). 
+  * `Valor Seco (Ex: 3500)` = 0% de Umidade
+  * `Valor Submerso em Água (Ex: 1200)` = 100% de Umidade
+* **Luminosidade (LDR):** Categorização via `CASE WHEN`.
+  * `< 1000` = Escuro
+  * `1000 a 2500` = Sombra Clara
+  * `> 2500` = Sol Direto
+
 ## 🚀 Próximos Passos (Data Engineering)
 - [ ] Modelagem dimensional e calibração dos sensores usando SQL/dbt (Camada Silver/Gold).
 - [ ] Criação de painel de visualização (BI) com Metabase ou Power BI.
