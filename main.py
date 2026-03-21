@@ -1,22 +1,17 @@
-import dht
+import dht          # <-- Faltava ele! A biblioteca do sensor de temperatura/umidade
 import machine
 import time
 import network
 import urequests
 import ssd1306
+import secrets      # <-- O seu cofre de senhas novo
 
 # --- CREDENCIAIS ---
-# Substitua pelos seus dados de Wi-Fi
-WIFI_SSID = ""
-WIFI_PASS = ""
-
-# Junta a URL do projeto com o caminho da API da tabela
-SUPABASE_URL = ""
-SUPABASE_KEY = ""
+SUPABASE_URL_COMPLETA = f"{secrets.SUPABASE_URL}/rest/v1/leituras_brutas_bronze"
 
 HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "apikey": secrets.SUPABASE_KEY,
+    "Authorization": f"Bearer {secrets.SUPABASE_KEY}",
     "Content-Type": "application/json",
     "Prefer": "return=minimal"
 }
@@ -55,9 +50,9 @@ def conectar_wifi():
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     if not wlan.isconnected():
-        print(f"A conectar a {WIFI_SSID}...")
+        print(f"A conectar a {secrets.WIFI_SSID}...")
         atualizar_ecra("-", "-", "-", "-", "Wi-Fi..")
-        wlan.connect(WIFI_SSID, WIFI_PASS)
+        wlan.connect(secrets.WIFI_SSID, secrets.WIFI_PASS)
         # Espera até 10 segundos para não ficar preso infinitamente
         tentativas = 0
         while not wlan.isconnected() and tentativas < 10:
@@ -94,7 +89,7 @@ try:
         }
         
         # 3. Dispara para a nuvem
-        res = urequests.post(SUPABASE_URL, headers=HEADERS, json=payload)
+        res = urequests.post(SUPABASE_URL_COMPLETA, headers=HEADERS, json=payload)
         
         if res.status_code == 201:
             piscar_led()
