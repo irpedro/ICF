@@ -14,7 +14,7 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 * `/main.py`: O código principal de produção otimizado para a placa.
 * `/ingestao_perenual.py`: Script de extração (ETL) responsável por buscar os metadados das plantas na API.
 * `/poc/`: Provas de conceito e testes isolados de hardware (Display I2C, Testes de Wi-Fi).
-* 
+
 * ## 🛠️ Pré-requisitos de Desenvolvimento (dbt)
 Para rodar as transformações locais e gerar a documentação da Camada Gold, é recomendado o uso de um ambiente virtual (`venv`) para evitar conflitos de dependência.
 * **Python:** Versão `3.11.x` (64-bits) recomendada por estabilidade com pacotes de dados.
