@@ -1,40 +1,44 @@
 # 🌿 Plant Sensor Analysis (ESP32 + Supabase)
 
-Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do clima e umidade do solo, transmitindo os dados diretamente para um Data Lake na nuvem (Supabase/PostgreSQL) via API REST.
+Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do clima e umidade do solo, transmitindo os dados diretamente para um Data Lake na nuvem (Supabase/PostgreSQL) via API REST. O projeto adota a **Arquitetura Medalhão (Bronze, Silver, Gold)** para garantir a qualidade, rastreabilidade e segurança dos dados.
 
-## 🏗️ Arquitetura
+## 🏗️ Arquitetura e Engenharia de Dados
+
 1. **Hardware (Edge Computing):** ESP32-C3 SuperMini programado em MicroPython.
 2. **Sensores:** DHT22 (Temperatura/Umidade do Ar), Sensor de Umidade do Solo Analógico e Sensor de Luz (LDR).
 3. **Eficiência Energética:** Utiliza `machine.deepsleep()` para economizar bateria entre os ciclos de leitura.
-4. **Ingestão de Dados (Camada Bronze):** Envio direto para o Supabase via HTTP POST, armazenando o payload bruto em uma coluna `JSONB`.
+4. **Camada Bronze (Ingestão):** Envio direto para o Supabase via HTTP POST, armazenando o payload bruto em uma coluna `JSONB`.
+5. **Camada Silver (Tratamento):** View (`vw_leituras_silver`) responsável por descompactar o JSON, converter os tipos de dados, ajustar o fuso horário (UTC para America/Sao_Paulo) e aplicar políticas de segurança de acesso (*Secure View*).
 
 ## 📁 Estrutura do Projeto
 * `/main.py`: O código principal de produção otimizado para a placa.
+* `/ingestao_perenual.py`: Script de extração (ETL) responsável por buscar os metadados das plantas na API.
 * `/poc/`: Provas de conceito e testes isolados de hardware (Display I2C, Testes de Wi-Fi).
 
+## 🛠️ Pré-requisitos de Desenvolvimento (dbt)
+Para rodar as transformações locais e gerar a documentação da Camada Gold, é recomendado o uso de um ambiente virtual (`venv`) para evitar conflitos de dependência.
+* **Python:** Versão `3.11.x` (64-bits) recomendada por estabilidade com pacotes de dados.
+* **dbt-core:** `v1.11.7`
+* **dbt-postgres:** `v1.10.0`
+
 ## 📐 Calibração e Regras de Negócio (Camada Gold)
-Os sensores analógicos retornam valores brutos (0 a 4095) baseados na voltagem. Para gerar métricas amigáveis para o usuário final, aplicamos as seguintes transformações em SQL (via dbt):
 
-* **Umidade do Solo:** Interpolação linear (Regra de Três). 
-  * `Valor Seco (Ex: 3500)` = 0% de Umidade
-  * `Valor Submerso em Água (Ex: 1200)` = 100% de Umidade
-* **Luminosidade (LDR):** Categorização via `CASE WHEN`.
-  * `< 1000` = Escuro
-  * `1000 a 2500` = Sombra Clara
-  * `> 2500` = Sol Direto
- 
-## 🧠 Regras de Negócio e Enriquecimento de Dados (Camada Gold)
+Os sensores analógicos retornam valores brutos baseados na voltagem. Para gerar métricas amigáveis e *insights* acionáveis para o usuário final, aplicamos as seguintes transformações:
 
-Para transformar dados brutos de sensores em *insights* acionáveis, este projeto utiliza uma arquitetura de dados moderna (ELT) com modelagem dimensional:
+1. **Umidade do Solo (Calibração Empírica):** Os valores brutos de voltagem do solo (0-4095) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três) em SQL, com base em testes físicos de estresse:
+   * `3050` = 0% de Umidade (Sensor seco ao ar livre)
+   * `600` = 100% de Umidade (Sensor submerso em água)
+2. **Luminosidade (Sensor LDR):** Categorização do sinal analógico via `CASE WHEN` (ex: Escuro, Sombra Clara, Sol Direto). *Limites em fase de calibração.*
+3. **Enriquecimento Híbrido de Dados (Tabela Dimensão):** Os limites ideais de rega e luz para cada espécie de planta são cruzados (`JOIN`) com as leituras da Tabela Fato. Para garantir precisão, o projeto utiliza uma estratégia de contingência (`COALESCE`):
+   * **Fonte Primária:** Dicionário de dados estático baseado em literaturas agronômicas e científicas (ex: ESALQ/Embrapa), inserido via dbt seed.
+   * **Fonte Secundária (Fallback):** Dados genéricos extraídos da API pública Perenual para garantir que o sistema não falhe diante de espécies não mapeadas.
 
-1. **Calibração Analógica:** Os valores brutos de voltagem do solo (0-4095) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três) em SQL.
-2. **Classificação de Luminosidade:** O sinal do sensor LDR é categorizado ('Escuro', 'Sombra', 'Sol Direto') usando blocos `CASE WHEN`.
-3. **Enriquecimento com API (Tabela Dimensão):** Os limites ideais de humidade e luz para cada espécie de planta não são adivinhados. Eles são extraídos de APIs botânicas públicas e carregados numa tabela dimensional local (`dim_plantas`). 
-4. **Cruzamento de Dados:** As leituras da Tabela Fato (ESP32) são cruzadas (`JOIN`) com a Tabela Dimensão (Botânica) para gerar alertas reais, como *"Humidade a 20%: Crítico para esta espécie"*.
-
-## 🚀 Próximos Passos (Data Engineering)
-- [ ] Modelagem Botânica (API -> Dimensão): Criar a tabela dim_plantas no Supabase. Escrever um script Python local para extrair os limites de água e luz de uma API botânica e carregar nessa tabela.
-- [ ] Calibração e Cruzamento (Camada Gold): Fazer a matemática no SQL (Regra de Três para o solo) e cruzar as leituras da Tabela Fato (ESP32) com a Tabela Dimensão (dim_plantas).
-- [ ] Transformação Profissional (dbt): Migrar esta lógica para o dbt, versionando o pipeline de transformação.
-- [ ] Visualização de Dados (Power BI / Metabase): Ligar a ferramenta de BI diretamente à Camada Gold do Supabase para construir o dashboard de monitorização e alertas visuais.
-- [ ] Documentação: Manter o README.md atualizado com o diagrama desta arquitetura.
+## 🚀 Próximos Passos
+- [x] **Ingestão (Bronze) & Tratamento (Silver):** Hardware enviando dados e visualização limpa configurada no Supabase.
+- [x] **Calibração do Solo:** Limites físicos testados e mapeados.
+- [x] **Refatoração de Código:** Script Python de ingestão renomeado para refletir a fonte.
+- [ ] **Dicionário Científico:** Criar o *seed* estático no dbt com limites exatos da literatura agronômica.
+- [ ] **Camada Gold (Negócio):** Desenvolver a view final aplicando a Regra de Três (%) e o cruzamento das fontes com `COALESCE`.
+- [ ] **Visualização de Dados:** Conectar o Power BI à Camada Gold para construir o dashboard histórico de monitoramento.
+- [ ] **Hardware Solar & Luz:** Instalar painel solar e calibrar os limites do sensor de luminosidade (LDR).
+- [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas preditivos via Telegram/Email.
