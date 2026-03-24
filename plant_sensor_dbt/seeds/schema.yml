@@ -1,0 +1,10 @@
+version: 2
+
+seeds:
+  - name: limites_plantas_cientifico
+    description: >
+      Dicionário mestre com os limites biológicos de sobrevivência das plantas.
+      Dados consolidados e validados a partir de literatura científica:
+      - Instituto Plantarum (Plantas Ornamentais no Brasil).
+      - Diretrizes de paisagismo e produção vegetal da ESALQ/USP.
+      - Boletins técnicos do Instituto Agronômico de Campinas (IAC).

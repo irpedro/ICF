@@ -1,0 +1,8 @@
+nome_popular,nome_cientifico,temp_min_c,temp_max_c,umid_ar_min_pct,umid_ar_max_pct,tolerancia_seca
+Zamioculca,Zamioculcas zamiifolia,15,30,40,70,ALTA
+Jiboia,Epipremnum aureum,18,28,50,80,MEDIA
+Espada-de-são-jorge,Sansevieria trifasciata,15,32,30,70,ALTA
+Samambaia-americana,Nephrolepis exaltata,16,25,60,90,BAIXA
+Costela-de-adão,Monstera deliciosa,18,28,50,80,MEDIA
+Suculenta,Echeveria spp.,10,32,20,50,ALTA
+Orquídea Phalaenopsis,Phalaenopsis spp.,18,28,50,70,BAIXA
