@@ -40,6 +40,7 @@ Os sensores analógicos retornam valores brutos baseados na voltagem. Para gerar
 Para garantir a fiabilidade do pipeline e evitar o princípio de *Garbage In, Garbage Out* decorrente de possíveis falhas de hardware (ex: perda de sinal Wi-Fi ou falha no sensor), o projeto implementa rotinas de Data Quality:
 * **Testes Automatizados:** Validação de integridade (`unique`, `not_null`) aplicada diretamente nas camadas Silver e Gold através de ficheiros `schema.yml`, blindando o modelo final contra dados corrompidos ou em branco.
 * **Documentação e Linhagem (DAG):** Dicionário de dados mapeado desde a origem (Bronze) até ao produto final (Gold). O grafo de linhagem visual é gerado automaticamente pelo motor do dbt, garantindo total rastreabilidade do fluxo ELT.
+    * `dbt docs serve`
 
 ## 🚀 Próximos Passos
 - [x] **Ingestão (Bronze) & Tratamento (Silver):** Hardware enviando dados e visualização limpa configurada no Supabase.
