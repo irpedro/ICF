@@ -1,7 +1,0 @@
-version: 2
-
-sources:
-  - name: camada_bronze
-    schema: public
-    tables:
-      - name: leituras_brutas_bronze

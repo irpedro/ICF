@@ -10,19 +10,20 @@ limites_cientificos AS (
 
 cruzamento AS (
     SELECT 
-        l.id_leitura,
-        l.data_leitura_br,
+        l.id,
+        l.data_leitura_sp,
         l.temperatura_c,
         l.umidade_ar_pct,    
-        l.umidade_solo_pct,
-        -- l.luminosidade,      <-- COMENTADO: Aguardando calibração do hardware
+        l.umidade_solo_raw,
+        -- l.luz_raw,      <-- COMENTADO: Aguardando calibração do hardware
         c.nome_popular AS planta_monitorizada,
+        c.nome_cientifico,
         c.temp_min_c,
         c.temp_max_c,
         c.umid_ar_min_pct,
         c.umid_ar_max_pct,
-        -- c.lux_min,           <-- COMENTADO: Aguardando Master Data de luz
         c.tolerancia_seca,
+        -- c.lux_min,           <-- COMENTADO: Aguardando Master Data de luz
         TRUE AS flg_origem_dados_confiavel 
     FROM leituras l
     LEFT JOIN limites_cientificos c 
@@ -47,8 +48,8 @@ SELECT
 
     -- 3. Umidade do Solo
     CASE 
-        WHEN umidade_solo_pct < 20 THEN 'ALERTA: Solo muito seco (Regar!)'
-        WHEN umidade_solo_pct > 80 THEN 'ALERTA: Solo encharcado'
+        WHEN umidade_solo_raw > 3000 THEN 'ALERTA: Solo muito seco (Regar!)' -- (Ajuste os valores para o seu RAW empírico)
+        WHEN umidade_solo_raw < 1000 THEN 'ALERTA: Solo encharcado'
         ELSE 'Umidade do Solo Adequada'
     END AS status_umidade_solo
 

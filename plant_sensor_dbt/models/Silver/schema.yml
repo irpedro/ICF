@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: vw_leituras_silver
+    description: "Camada de limpeza, tipagem e ajuste de fuso horário dos dados brutos do sensor JSON."
+    columns:
+      - name: id
+        description: "Chave primária da leitura na base de dados."
+        tests:
+          - unique
+          - not_null
+
+      - name: data_leitura_sp
+        description: "Data e hora da leitura convertida para o fuso horário de São Paulo."
+        tests:
+          - not_null
+
+      - name: temperatura_c
+        description: "Leitura física do DHT22 (Celsius)."
+        tests:
+          - not_null
+
+      - name: umidade_ar_pct
+        description: "Leitura física do DHT22 (Porcentagem)."
+        tests:
+          - not_null
+
+      - name: umidade_solo_raw
+        description: "Leitura analógica bruta do pino do solo (0-4095)."
+        tests:
+          - not_null
+
+      - name: luz_raw
+        description: "Leitura analógica bruta do sensor LDR."
+        # Sem teste not_null por enquanto, aguardando ativação/calibração final do hardware.
+
+      - name: dispositivo
+        description: "Identificador do microcontrolador (ESP32) que enviou o payload."
+        tests:
+          - not_null

@@ -1,0 +1,66 @@
+version: 2
+
+models:
+  - name: monitorizacao_plantas_gold
+    description: "Tabela final cruzando leituras físicas do sensor com os limites científicos da planta."
+    columns:
+      # --- CHAVES E DATAS ---
+      - name: id
+        description: "Chave primária da leitura física do sensor."
+        tests:
+          - unique
+          - not_null
+
+      - name: data_leitura_sp
+        description: "Data e hora da leitura no fuso horário de São Paulo."
+        tests:
+          - not_null
+
+      # --- LEITURAS DO SENSOR (FÍSICA) ---
+      - name: temperatura_c
+        description: "Temperatura ambiente em graus Celsius."
+        tests:
+          - not_null
+
+      - name: umidade_ar_pct
+        description: "Umidade relativa do ar em porcentagem."
+        tests:
+          - not_null
+
+      - name: umidade_solo_raw
+        description: "Leitura bruta do sensor analógico de solo."
+        tests:
+          - not_null
+
+      # --- MASTER DATA (CIÊNCIA) ---
+      - name: planta_monitorizada
+        description: "Nome popular da planta."
+        tests:
+          - not_null
+
+      - name: nome_cientifico
+        description: "Nome científico da planta."
+        tests:
+          - not_null
+
+      - name: flg_origem_dados_confiavel
+        description: "Flag que indica se os limites vieram do Seed oficial."
+        tests:
+          - not_null
+
+      # --- REGRAS DE NEGÓCIO (STATUS) ---
+      # (Usando apenas not_null para evitar erros caso você tenha mudado os textos dos alertas)
+      - name: status_temperatura
+        description: "Alerta de saúde baseado na temperatura ideal da planta."
+        tests:
+          - not_null
+
+      - name: status_umidade_ar
+        description: "Alerta de saúde baseado na umidade do ar ideal."
+        tests:
+          - not_null
+
+      - name: status_umidade_solo
+        description: "Alerta de rega baseado na calibração física do solo."
+        tests:
+          - not_null

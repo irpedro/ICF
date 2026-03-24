@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: camada_bronze
+    description: "Esquema no Supabase que recebe os dados brutos diretamente do hardware (ESP32) via API REST."
+    tables:
+      - name: leituras_brutas_bronze
+        description: "Tabela de ingestão (Landing Zone) contendo o payload original do sensor antes de qualquer tratamento."
+        columns:
+          - name: id
+            description: "Chave primária gerada automaticamente pelo PostgreSQL/Supabase."
+            
+          - name: arquivo_origem
+            description: "Identificador de origem do dispositivo (ex: main.py ou o nome do seu ESP32)."
+
+          - name: dados_json
+            description: "Coluna do tipo JSONB contendo o payload completo enviado pelo microcontrolador (temperatura, umidade, luz e solo)."
+
+          - name: data_ingestao
+            description: "Timestamp em UTC do momento exato em que o banco de dados recebeu o POST do hardware."
+            
