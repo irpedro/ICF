@@ -50,3 +50,4 @@ Para garantir a fiabilidade do pipeline e evitar o princípio de *Garbage In, Ga
 - [ ] **Visualização de Dados:** Conectar o Power BI à Camada Gold para construir o dashboard histórico de monitoramento.
 - [ ] **Hardware Solar & Luz:** Instalar painel solar e calibrar os limites do sensor de luminosidade (LDR).
 - [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas preditivos via Telegram/Email.
+- [ ] **Data Lineage Pública (Opcional):** Hospedar o site interativo do `dbt docs` no GitHub Pages através de CI/CD com GitHub Actions.
