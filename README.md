@@ -8,9 +8,9 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 2. **Sensores:** DHT22 (Temperatura/Umidade do Ar), Sensor de Umidade do Solo Analógico e Sensor de Luz (LDR).
 3. **Eficiência Energética:** Utiliza `machine.deepsleep()` para economizar bateria entre os ciclos de leitura.
 4. **Extração e Carregamento (E e L):** Envio direto do hardware para a Camada Bronze do Supabase via HTTP POST, armazenando o payload bruto em uma coluna `JSONB`. Scripts em Python funcionam como via de contingência para APIs externas.
-5. **Transformação via dbt (T):** O Data Build Tool atua diretamente dentro do Data Lake operando nas camadas seguintes (não há "pasta Bronze" no dbt, pois ele lê o dado já carregado):
+5. **Transformação via dbt (T):** O Data Build Tool atua diretamente dentro do Data Lake operando nas camadas seguintes (não há "pasta Bronze" no dbt, pois o dado já está carregado):
    * **Camada Silver:** View (`vw_leituras_silver`) responsável por descompactar o JSON, converter os tipos, ajustar o fuso horário (UTC para America/Sao_Paulo) e aplicar políticas de segurança.
-   * **Camada Gold:** Modelagem de regras de negócio, cruzamento de dados e geração de alertas de saúde da planta.
+   * **Camada Gold (Roteamento Dinâmico):** Modelagem de regras de negócio, cruzamento de dados e geração de alertas de saúde da planta. Utiliza uma seed (`cadastro_sensores.csv`) para mapear o hardware (`dispositivo`) à espécie botânica atual. Isso permite trocar o sensor para outras plantas ou adicionar novos dispositivos sem alterar uma única linha de código SQL, garantindo a escalabilidade do monitoramento.
 
 ## 📁 Estrutura do Projeto
 * `/main.py`: O código principal de produção otimizado para a placa.
@@ -52,3 +52,4 @@ Para garantir a fiabilidade do pipeline e evitar o princípio de *Garbage In, Ga
 - [ ] **Hardware Solar & Luz:** Instalar painel solar e calibrar os limites do sensor de luminosidade (LDR).
 - [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas preditivos via Telegram/Email.
 - [ ] **Data Lineage Pública (Opcional):** Hospedar o site interativo do `dbt docs` no GitHub Pages através de CI/CD com GitHub Actions.
+- [ ] **Teste Final** Testar e monitorar uma planta com o projeto completo.
