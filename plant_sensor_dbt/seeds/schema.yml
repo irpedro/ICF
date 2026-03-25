@@ -8,3 +8,18 @@ seeds:
       - Instituto Plantarum (Plantas Ornamentais no Brasil).
       - Diretrizes de paisagismo e produção vegetal da ESALQ/USP.
       - Boletins técnicos do Instituto Agronômico de Campinas (IAC).
+
+  - name: cadastro_sensores
+    description: >
+      Tabela de roteamento (De/Para) que vincula o hardware físico à planta monitorada atualmente.
+      Permite a troca de plantas sem necessidade de refatorar o código SQL.
+    columns:
+      - name: dispositivo
+        description: "Identificador único do microcontrolador (ex: esp32_c3_supermini)."
+        tests:
+          - not_null
+          - unique
+      - name: nome_planta
+        description: "Nome popular da planta associada ao dispositivo. Usado como chave para buscar os limites científicos."
+        tests:
+          - not_null

@@ -2,6 +2,7 @@ version: 2
 
 sources:
   - name: camada_bronze
+    schema: public
     description: "Esquema no Supabase que recebe os dados brutos diretamente do hardware (ESP32) via API REST."
     tables:
       - name: leituras_brutas_bronze

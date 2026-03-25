@@ -4,6 +4,11 @@ WITH leituras AS (
     SELECT * FROM {{ ref('vw_leituras_silver') }}
 ),
 
+-- Nova CTE puxando o nosso Seed (A Tabela de De/Para)
+cadastro_sensores AS (
+    SELECT * FROM {{ ref('cadastro_sensores') }}
+),
+
 limites_cientificos AS (
     SELECT * FROM {{ ref('limites_plantas_cientifico') }}
 ),
@@ -26,8 +31,14 @@ cruzamento AS (
         -- c.lux_min,           <-- COMENTADO: Aguardando Master Data de luz
         TRUE AS flg_origem_dados_confiavel 
     FROM leituras l
+    
+    -- 1º JOIN: Descobre a planta com base no MAC Address / Dispositivo
+    LEFT JOIN cadastro_sensores cs 
+        ON l.dispositivo = cs.dispositivo
+        
+    -- 2º JOIN: Busca os limites biológicos da planta que acabamos de descobrir
     LEFT JOIN limites_cientificos c 
-        ON c.nome_popular = 'Zamioculca'
+        ON cs.nome_planta = c.nome_popular
 )
 
 SELECT 

@@ -34,7 +34,7 @@ models:
 
       # --- MASTER DATA (CIÊNCIA) ---
       - name: planta_monitorizada
-        description: "Nome popular da planta."
+        description: "Nome popular da planta, obtido dinamicamente com base no dispositivo físico."
         tests:
           - not_null
 
