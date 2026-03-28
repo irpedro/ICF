@@ -9,7 +9,7 @@ SELECT
     (dados_json->>'temperature_c')::NUMERIC AS temperatura_c,
     (dados_json->>'humidity_pct')::NUMERIC AS umidade_ar_pct,
     (dados_json->>'soil_moisture_raw')::INT AS umidade_solo_raw,
-    (dados_json->>'light_intensity_raw')::INT AS luz_raw,
+    (dados_json->>'light_intensity_raw')::NUMERIC AS luz_raw,
     
     arquivo_origem AS dispositivo
 FROM 

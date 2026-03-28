@@ -49,7 +49,6 @@ models:
           - not_null
 
       # --- REGRAS DE NEGÓCIO (STATUS) ---
-      # (Usando apenas not_null para evitar erros caso você tenha mudado os textos dos alertas)
       - name: status_temperatura
         description: "Alerta de saúde baseado na temperatura ideal da planta."
         tests:

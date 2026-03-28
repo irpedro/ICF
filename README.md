@@ -5,51 +5,56 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 ## 🏗️ Arquitetura e Engenharia de Dados (ELT)
 
 1. **Hardware (Edge Computing):** ESP32-C3 SuperMini programado em MicroPython.
-2. **Sensores:** DHT22 (Temperatura/Umidade do Ar), Sensor de Umidade do Solo Analógico e Sensor de Luz (LDR).
+2. **Sensores:** DHT22 (Temperatura/Umidade do Ar), Sensor de Umidade do Solo Analógico e Sensor de Luz Digital (BH1750 via I2C).
 3. **Eficiência Energética:** Utiliza `machine.deepsleep()` para economizar bateria entre os ciclos de leitura.
 4. **Extração e Carregamento (E e L):** Envio direto do hardware para a Camada Bronze do Supabase via HTTP POST, armazenando o payload bruto em uma coluna `JSONB`. Scripts em Python funcionam como via de contingência para APIs externas.
-5. **Transformação via dbt (T):** O Data Build Tool atua diretamente dentro do Data Lake operando nas camadas seguintes (não há "pasta Bronze" no dbt, pois o dado já está carregado):
-   * **Camada Silver:** View (`vw_leituras_silver`) responsável por descompactar o JSON, converter os tipos, ajustar o fuso horário (UTC para America/Sao_Paulo) e aplicar políticas de segurança.
-   * **Camada Gold (Roteamento Dinâmico):** Modelagem de regras de negócio, cruzamento de dados e geração de alertas de saúde da planta. Utiliza uma seed (`cadastro_sensores.csv`) para mapear o hardware (`dispositivo`) à espécie botânica atual. Isso permite trocar o sensor para outras plantas ou adicionar novos dispositivos sem alterar uma única linha de código SQL, garantindo a escalabilidade do monitoramento.
+5. **Transformação via dbt (T):** O Data Build Tool atua diretamente dentro do Data Lake operando nas camadas seguintes:
+   * **Camada Silver:** View (`vw_leituras_silver`) responsável por descompactar o JSON, converter os tipos, ajustar o fuso horário e aplicar políticas de segurança.
+   * **Camada Gold (Roteamento Dinâmico & Agregação):** Dividida em duas *Fato* principais:
+     * **Granulada (Tempo Real):** Cruzamento das leituras de momento com os limites biológicos via seed (`cadastro_sensores.csv`). Gera alertas imediatos de temperatura e rega.
+     * **Agregada (Resumo Diário):** Modelagem focada no *Daily Light Integral* (DLI), agrupando os dados de luminosidade do sensor BH1750 para calcular o tempo total de exposição solar útil no dia.
 
 ## 📁 Estrutura do Projeto
 * `/main.py`: O código principal de produção otimizado para a placa.
 * `/ingestao_perenual.py`: Script de extração responsável por buscar os metadados das plantas na API.
 * `/plant_sensor_dbt/`: Repositório de transformação de dados contendo as models em SQL (Silver/Gold) e o dicionário de dados (Seeds).
-* `/poc/`: Provas de conceito e testes isolados de hardware (Display I2C, Testes de Wi-Fi).
-v
+* `/poc/`: Provas de conceito e testes isolados de hardware.
+
 ## 🛠️ Pré-requisitos de Desenvolvimento (dbt)
 Para rodar as transformações locais e gerar a documentação da Camada Gold, é recomendado o uso de um ambiente virtual (`venv`) para evitar conflitos de dependência.
-* **Python:** Versão `3.11.x` (64-bits) recomendada por estabilidade com pacotes de dados.
+* **Python:** Versão `3.11.x` (64-bits)
 * **dbt-core:** `v1.11.7`
 * **dbt-postgres:** `v1.10.0`
 
 ## 📐 Calibração e Regras de Negócio (Camada Gold)
 
-Os sensores analógicos retornam valores brutos baseados na voltagem. Para gerar métricas amigáveis e *insights* acionáveis, aplicamos as seguintes transformações:
+Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights* acionáveis, aplicamos as seguintes transformações:
 
-1. **Umidade do Solo (Calibração Empírica):** Os valores brutos de voltagem do solo (0-4095) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três) em SQL, com base em testes físicos de estresse:
-   * `3050` = 0% de Umidade (Sensor seco ao ar livre)
-   * `600` = 100% de Umidade (Sensor submerso em água)
-2. **Luminosidade (Sensor LDR):** Categorização do sinal analógico via `CASE WHEN` (ex: Escuro, Sombra Clara, Sol Direto). *Limites em fase de calibração.*
-3. **Enriquecimento Híbrido de Dados (Tabela Fato x Dimensão):** Os limites ideais de rega e luz para cada espécie são cruzados (`JOIN`) com as leituras. Para garantir precisão e resiliência, o projeto utiliza uma estratégia de contingência (`COALESCE`), sinalizada pela coluna `flg_origem_dados_confiavel`:
-   * **Fonte Primária (Ouro):** Dicionário de dados estático (`limites_plantas_cientifico`), inserido via *dbt seed*, baseado em literatura agronômica de ponta (Diretrizes de produção vegetal da **ESALQ/USP**, **Boletim 100** do IAC e manuais do **Instituto Plantarum**).
-   * **Fonte Secundária (Fallback):** Dados genéricos extraídos da API pública Perenual para evitar falhas sistêmicas diante de espécies não mapeadas.
+1. **Umidade do Solo (Calibração Empírica):** Os valores brutos de voltagem (0-4095) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três) em SQL:
+   * `3050` = 0% de Umidade (Sensor seco)
+   * `600` = 100% de Umidade (Sensor submerso)
+2. **Luminosidade (Sensor BH1750 I2C):** Leitura de altíssima precisão em Lux. Os dados são agregados na tabela `gold_diaria_monitorizacao` para definir a saúde fotossintética do dia.
+3. **Enriquecimento Híbrido de Dados (Tabela Fato x Dimensão):** Os limites ideais de rega e luz para cada espécie são cruzados (`JOIN`) com as leituras. Utiliza-se a função `COALESCE` para priorizar a fonte primária (dicionário oficial ESALQ/USP em dbt seed) e usar a API Perenual apenas como *fallback*.
   
 ## 🧪 Qualidade de Dados e Governança (dbt)
-Para garantir a fiabilidade do pipeline e evitar o princípio de *Garbage In, Garbage Out* decorrente de possíveis falhas de hardware (ex: perda de sinal Wi-Fi ou falha no sensor), o projeto implementa rotinas de Data Quality:
-* **Testes Automatizados:** Validação de integridade (`unique`, `not_null`) aplicada diretamente nas camadas Silver e Gold através de ficheiros `schema.yml`, blindando o modelo final contra dados corrompidos ou em branco.
-* **Documentação e Linhagem (DAG):** Dicionário de dados mapeado desde a origem (Bronze) até ao produto final (Gold). O grafo de linhagem visual é gerado automaticamente pelo motor do dbt, garantindo total rastreabilidade do fluxo ELT.
-    * `dbt docs serve`
+* **Testes Automatizados:** Validação de integridade (`unique`, `not_null`) aplicada diretamente nas camadas Silver e Gold através do ficheiro `schema.yml`.
+* **Documentação e Linhagem (DAG):** Dicionário de dados mapeado desde a origem (Bronze) até ao produto final (Gold). O grafo de linhagem visual é gerado automaticamente pelo dbt (`dbt docs serve`).
 
 ## 🚀 Próximos Passos
 - [x] **Ingestão (Bronze) & Tratamento (Silver):** Hardware enviando dados e visualização limpa configurada no Supabase.
 - [x] **Calibração do Solo:** Limites físicos testados e mapeados.
-- [x] **Refatoração de Código:** Script Python de ingestão renomeado para refletir a fonte.
-- [x] **Dicionário Científico:** Arquivo *seed* estático no dbt criado com limites exatos da literatura agronômica.
-- [x] **Camada Gold (Negócio):** View final desenvolvida aplicando o cruzamento das leituras com os limites biológicos.
-- [ ] **Visualização de Dados:** Conectar o Power BI à Camada Gold para construir o dashboard histórico de monitoramento.
-- [ ] **Hardware Solar & Luz:** Instalar painel solar e calibrar os limites do sensor de luminosidade (LDR).
-- [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas preditivos via Telegram/Email.
-- [ ] **Data Lineage Pública (Opcional):** Hospedar o site interativo do `dbt docs` no GitHub Pages através de CI/CD com GitHub Actions.
-- [ ] **Teste Final** Testar e monitorar uma planta com o projeto completo.
+- [x] **Dicionário Científico:** Arquivo *seed* estático no dbt criado com limites da literatura agronômica.
+- [x] **Camada Gold (Negócio):** View final desenvolvida cruzando leituras com limites biológicos.
+
+**Frente 1: Hardware & Engenharia de Dados (Coleta de Luz)**
+- [x] **Configuração do BH1750:** Otimizado o `main.py` para utilizar a biblioteca do sensor de luz digital I2C (pinos 5 e 6).
+- [x] **Nova Modelagem dbt (DLI):** Desenvolvida a tabela `gold_diaria_monitorizacao` para calcular o acúmulo de horas de luz úteis diárias.
+
+**Frente 2: Visualização & Business Intelligence (Power BI)**
+- [x] **Resolução de Infraestrutura:** Conexão direta Power BI Desktop -> Supabase Pooler configurada, ignorando bloqueios de certificado SSL da nuvem.
+- [ ] **Construção do Dashboard:** Visualizações de tempo real e gráficos de acompanhamento conectadas ao modelo semântico local.
+
+**Frente 3: Refinamento e Teste Final**
+- [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento) e reativar o teste `not_null` da luminosidade no `schema.yml` da Silver.
+- [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
+- [ ] **Teste Final em Produção:** Testar e monitorar a planta com o projeto completo rodando em Deep Sleep.

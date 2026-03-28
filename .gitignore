@@ -1,2 +1,6 @@
 secrets.py
 __pycache__/secrets.cpython-313.pyc
+logs/
+target/
+dbt_packages/
+logs/dbt.log

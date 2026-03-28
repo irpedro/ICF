@@ -20,14 +20,24 @@ HEADERS = {
 sensor_ar = dht.DHT22(machine.Pin(4))
 sensor_solo = machine.ADC(machine.Pin(3))
 sensor_solo.atten(machine.ADC.ATTN_11DB)
-sensor_luz = machine.ADC(machine.Pin(0)) 
-sensor_luz.atten(machine.ADC.ATTN_11DB)
 
 led_azul = machine.Pin(8, machine.Pin.OUT)
 led_azul.value(1) 
 
 i2c = machine.I2C(0, scl=machine.Pin(6), sda=machine.Pin(5))
 disp = ssd1306.SSD1306_I2C(128, 64, i2c)
+
+def ler_luz_bh1750(i2c_bus):
+    """Lê a luminosidade em Lux do sensor BH1750 via I2C"""
+    try:
+        i2c_bus.writeto(0x23, b'\x10')
+        time.sleep_ms(180) # Tempo para o sensor fotografar a luz
+        dados = i2c_bus.readfrom(0x23, 2)
+        lux = (dados[0] << 8 | dados[1]) / 1.2
+        return round(lux, 1)
+    except Exception as e:
+        print("Erro ao ler BH1750:", e)
+        return -1.0
 
 def atualizar_ecra(temp, umid, solo, luz, status=""):
     try:
@@ -55,7 +65,7 @@ def conectar_wifi():
         wlan.connect(secrets.WIFI_SSID, secrets.WIFI_PASS)
         # Espera até 10 segundos para não ficar preso infinitamente
         tentativas = 0
-        while not wlan.isconnected() and tentativas < 10:
+        while not wlan.isconnected() and tentativas < 20:
             time.sleep(1)
             tentativas += 1
             print(".", end="")
@@ -73,7 +83,7 @@ try:
         temp_atual = round(sensor_ar.temperature(), 1)
         umid_atual = round(sensor_ar.humidity(), 1)
         solo_atual = sensor_solo.read()
-        luz_atual = sensor_luz.read() 
+        luz_atual = ler_luz_bh1750(i2c)
         
         atualizar_ecra(temp_atual, umid_atual, solo_atual, luz_atual, "A enviar")
         
@@ -107,7 +117,7 @@ except Exception as e:
     atualizar_ecra("E", "E", "E", "E", "Erro")
 
 # 4. HIBERNAÇÃO (Deep Sleep)
-# O ecrã vai continuar a mostrar a última imagem graças à energia passiva!
+# O ecrã vai continuar a mostrar a última imagem graças à energia passiva
 TEMPO_SONO_MS = 900000 # 15 minutos
 
 print(f"A entrar em Deep Sleep por {TEMPO_SONO_MS / 1000} segundos...")

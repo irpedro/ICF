@@ -64,12 +64,4 @@ SELECT
         ELSE 'Umidade do Solo Adequada'
     END AS status_umidade_solo
 
-    -- 4. Luminosidade 
-    /* <-- Bloco inteiro comentado para uso futuro no Passo 14
-    , CASE 
-        WHEN luminosidade < lux_min THEN 'ALERTA: Luz insuficiente'
-        ELSE 'Luminosidade Adequada'
-    END AS status_luminosidade
-    */
-
 FROM cruzamento
