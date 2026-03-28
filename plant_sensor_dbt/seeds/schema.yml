@@ -8,6 +8,27 @@ seeds:
       - Instituto Plantarum (Plantas Ornamentais no Brasil).
       - Diretrizes de paisagismo e produção vegetal da ESALQ/USP.
       - Boletins técnicos do Instituto Agronômico de Campinas (IAC).
+    columns:
+      - name: nome_popular
+        description: "Nome comum da planta."
+      - name: nome_cientifico
+        description: "Nomenclatura botânica oficial."
+      - name: temp_min_c
+        description: "Temperatura mínima de sobrevivência (Celsius)."
+      - name: temp_max_c
+        description: "Temperatura máxima suportada (Celsius)."
+      - name: umid_ar_min_pct
+        description: "Umidade mínima do ar tolerada."
+      - name: umid_ar_max_pct
+        description: "Umidade máxima do ar tolerada."
+      - name: tolerancia_seca
+        description: "Classificação biológica de resistência à falta de água (ALTA, MEDIA, BAIXA)."
+      - name: lux_min
+        description: "Nível mínimo de intensidade luminosa (Lux) para iniciar a fotossíntese útil."
+      - name: horas_luz_minimas
+        description: "Fotoperíodo ativo: Quantidade mínima de horas de luz diárias necessárias."
+      - name: horas_descanso_minimas
+        description: "Fotoperíodo inativo: Quantidade mínima de horas de escuridão profunda para respiração celular."
 
   - name: cadastro_sensores
     description: >

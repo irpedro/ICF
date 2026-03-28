@@ -1,7 +1,8 @@
 version: 2
 
 models:
-  - name: monitorizacao_plantas_gold
+  # --- 1. TABELA FATO GRANULAR (TEMPO REAL) ---
+  - name: gold_granulada_monitorizacao
     description: "Tabela final cruzando leituras físicas do sensor com os limites científicos da planta."
     columns:
       # --- CHAVES E DATAS ---
@@ -10,56 +11,84 @@ models:
         tests:
           - unique
           - not_null
-
       - name: data_leitura_sp
         description: "Data e hora da leitura no fuso horário de São Paulo."
         tests:
           - not_null
-
       # --- LEITURAS DO SENSOR (FÍSICA) ---
       - name: temperatura_c
         description: "Temperatura ambiente em graus Celsius."
         tests:
           - not_null
-
       - name: umidade_ar_pct
         description: "Umidade relativa do ar em porcentagem."
         tests:
           - not_null
-
       - name: umidade_solo_raw
         description: "Leitura bruta do sensor analógico de solo."
         tests:
           - not_null
-
       # --- MASTER DATA (CIÊNCIA) ---
       - name: planta_monitorizada
         description: "Nome popular da planta, obtido dinamicamente com base no dispositivo físico."
         tests:
           - not_null
-
       - name: nome_cientifico
         description: "Nome científico da planta."
         tests:
           - not_null
-
       - name: flg_origem_dados_confiavel
         description: "Flag que indica se os limites vieram do Seed oficial."
         tests:
           - not_null
-
       # --- REGRAS DE NEGÓCIO (STATUS) ---
       - name: status_temperatura
         description: "Alerta de saúde baseado na temperatura ideal da planta."
         tests:
           - not_null
-
       - name: status_umidade_ar
         description: "Alerta de saúde baseado na umidade do ar ideal."
         tests:
           - not_null
-
       - name: status_umidade_solo
         description: "Alerta de rega baseado na calibração física do solo."
+        tests:
+          - not_null
+
+  # --- 2. TABELA FATO AGREGADA (RESUMO DIÁRIO E DLI) ---
+  - name: gold_diaria_monitorizacao
+    description: "Tabela agregada por dia para cálculo do Integral de Luz Diária (DLI), fotoperíodo e observabilidade do hardware."
+    columns:
+      - name: data_ref
+        description: "Data de referência do resumo diário."
+        tests:
+          - unique
+          - not_null
+      - name: temperatura_media_c
+        description: "Temperatura média do dia."
+        tests:
+          - not_null
+      - name: umidade_media_pct
+        description: "Umidade média do ar no dia."
+        tests:
+          - not_null
+      - name: par_ppfd_medio
+        description: "Média da Radiação Fotossinteticamente Ativa (PPFD) estimada em micromols."
+        tests:
+          - not_null
+      - name: horas_sol_util_diarias
+        description: "Total de horas no dia em que a luz atingiu o mínimo exigido pela planta."
+        tests:
+          - not_null
+      - name: horas_descanso_diarias
+        description: "Total de horas de escuridão profunda para respiração celular da planta."
+        tests:
+          - not_null
+      - name: taxa_cobertura_dados_pct
+        description: "Métrica de Uptime: Porcentagem do dia em que o hardware esteve online e enviando dados."
+        tests:
+          - not_null
+      - name: status_saude_luminosa
+        description: "Alerta de saúde baseado nas metas de luz, descanso e Uptime do sensor."
         tests:
           - not_null
