@@ -50,8 +50,16 @@ models:
         description: "Alerta de saúde baseado na umidade do ar ideal."
         tests:
           - not_null
+      - name: umidade_solo_pct
+        description: >
+          Nível de umidade do solo convertido para percentagem (0% a 100%).
+          Cálculo baseado em calibração empírica do sensor capacitivo onde 3050 representa 0% (seco) e 600 representa 100% (submerso).
+        tests:
+          - not_null
       - name: status_umidade_solo
-        description: "Alerta de rega baseado na calibração física do solo."
+        description: >
+          Indicador categórico de saúde hídrica. 
+          Compara a umidade_solo_pct com a tolerancia_seca da planta mapeada para disparar alertas de rega.
         tests:
           - not_null
 

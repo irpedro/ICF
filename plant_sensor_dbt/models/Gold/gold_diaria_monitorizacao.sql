@@ -1,5 +1,8 @@
 {{ config(materialized='view') }}
 
+-- Esta consulta tem como objetivo criar uma visão diária de monitoramento das condições ambientais para as plantas, com foco na saúde luminosa.
+-- Ela agrega as leituras de temperatura, umidade e luz, calcula o tempo de exposição à luz e escuridão, e compara com as metas definidas para cada planta, 
+-- além de avaliar a cobertura dos dados para garantir análises confiáveis.
 WITH leituras_com_lag AS (
     SELECT 
         l.data_leitura_sp,
@@ -7,7 +10,7 @@ WITH leituras_com_lag AS (
         l.temperatura_c,
         l.umidade_ar_pct,
         l.luz_raw AS luz_lux,
-        (l.luz_raw * 0.0185) AS luz_par_ppfd,
+        (l.luz_raw * 0.0185) AS luz_par_ppfd, -- Conversão aproximada de lux para PPFD, da luz visível par a luz que as plantas usam para fotossíntese
         p.lux_min,
         p.horas_luz_minimas,
         p.horas_descanso_minimas,
@@ -20,18 +23,20 @@ WITH leituras_com_lag AS (
     JOIN {{ ref('limites_plantas_cientifico') }} p ON c.nome_planta = p.nome_popular
 ),
 
+-- Enriquecemos as leituras com o tratamento de gaps para garantir que períodos sem dados não distorçam as análises diárias
 leituras_enriquecidas AS (
     SELECT 
         *,
         -- 🛡️ TRATAMENTO DE GAPS (BURACOS DE TEMPO)
         CASE 
-            WHEN delta_minutos IS NULL THEN 15.0 -- Primeira leitura do dia
+            WHEN delta_minutos IS NULL THEN 15.0 -- Primeira leitura do dia assumimos 15 minutos de monitoramento antes da leitura
             WHEN delta_minutos > 60.0 THEN 15.0  -- Sensor ficou offline e voltou, não contamos as horas perdidas
             ELSE delta_minutos                   -- Funcionamento normal contínuo
         END AS minutos_desde_ultima_leitura
     FROM leituras_com_lag
 ),
 
+-- Agregamos as leituras por dia para calcular as médias e totais diários, além de comparar com as metas de luz e descanso
 agregacao_diaria AS (
     SELECT 
         data_ref,
@@ -50,6 +55,7 @@ agregacao_diaria AS (
     GROUP BY data_ref
 )
 
+-- Na tabela final, calculamos a taxa de cobertura dos dados e aplicamos as regras de alerta para saúde luminosa
 SELECT 
     data_ref,
     ROUND(temp_media, 1) AS temperatura_media_c,

@@ -3,6 +3,10 @@ import time
 import json
 import secrets  
 
+# Script de ingestão em lote para popular a tabela dim_plantas no Supabase usando dados da API Perenual que atua como fonte de dados reserva, 
+# a partir de uma lista de plantas comuns em um arquivo JSON. 
+# O script inclui tratamento de erros, transformação segura dos dados e respeita os limites de taxa da API gratuita (100 por dia).
+
 # --- 1. CREDENCIAIS ---
 SUPABASE_URL_COMPLETA = f"{secrets.SUPABASE_URL}/rest/v1/dim_plantas"
 
