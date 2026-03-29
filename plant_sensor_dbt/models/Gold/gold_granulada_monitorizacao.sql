@@ -22,9 +22,15 @@ cruzamento AS (
         l.temperatura_c,
         l.umidade_ar_pct,    
         l.umidade_solo_raw,
+
         -- Regra de três invertida: 3050 (0%) a 600 (100%)
         -- Usamos GREATEST e LEAST para travar o valor entre 0 e 100 (evitar -5% ou 110%)
         GREATEST(0, LEAST(100, ROUND(((3050 - l.umidade_solo_raw) / (3050 - 600.0)) * 100, 1))) AS umidade_solo_pct,
+
+        -- A luz instantânea para o gráfico de linhas do Power BI
+        l.luz_raw,
+        ROUND((l.luz_raw * 0.0185), 2) AS luz_par_ppfd,
+
         c.nome_popular AS planta_monitorizada,
         c.nome_cientifico,
         c.temp_min_c,

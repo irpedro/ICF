@@ -62,6 +62,16 @@ models:
           Compara a umidade_solo_pct com a tolerancia_seca da planta mapeada para disparar alertas de rega.
         tests:
           - not_null
+      - name: luz_raw
+        description: Leitura bruta de luminosidade captada pelo sensor.
+        tests:
+          - not_null
+      - name: luz_par_ppfd
+        description: >
+          Estimativa da Radiação Fotossinteticamente Ativa (PPFD) em μmol/m²/s.
+          Calculada a partir da luz_raw usando o fator de conversão 0.0185, representando a luz real que a planta utiliza para fotossíntese.
+        tests:
+          - not_null
 
   # --- 2. TABELA FATO AGREGADA (RESUMO DIÁRIO E DLI) ---
   - name: gold_diaria_monitorizacao

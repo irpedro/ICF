@@ -46,7 +46,8 @@ agregacao_diaria AS (
         
         SUM(minutos_desde_ultima_leitura) AS total_minutos_monitorados,
         
-        SUM(CASE WHEN luz_lux >= lux_min THEN minutos_desde_ultima_leitura ELSE 0 END) / 60.0 AS horas_sol_util,
+        -- Calculamos o tempo total de exposição à luz e escuridão com base no limiar de 50 lux dividindo o dia em períodos de luz e escuridão
+        SUM(CASE WHEN luz_lux >= 50 THEN minutos_desde_ultima_leitura ELSE 0 END) / 60.0 AS horas_sol_util,
         SUM(CASE WHEN luz_lux < 50 THEN minutos_desde_ultima_leitura ELSE 0 END) / 60.0 AS horas_escuridao,
         
         MAX(horas_luz_minimas) AS meta_luz,
