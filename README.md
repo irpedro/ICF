@@ -34,6 +34,7 @@ Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights
    * `3050` = 0% de Umidade (Sensor seco)
    * `600` = 100% de Umidade (Sensor submerso)
 2. **Luminosidade (Sensor BH1750 I2C):** Leitura de altíssima precisão em Lux. Os dados são agregados na tabela `gold_diaria_monitorizacao` para definir a saúde fotossintética do dia.
+   * Foi implementada uma separação semântica entre o limiar físico de escuridão (< 50 lux) para medir o fotoperíodo, e o limite biológico de fotossíntese (lux_min) para gerar alertas de saúde da planta.
 3. **Enriquecimento Híbrido de Dados (Tabela Fato x Dimensão):** Os limites ideais de rega e luz para cada espécie são cruzados (`JOIN`) com as leituras. Utiliza-se a função `COALESCE` para priorizar a fonte primária (dicionário oficial ESALQ/USP em dbt seed) e usar a API Perenual apenas como *fallback*.
   
 ## 🧪 Qualidade de Dados e Governança (dbt)
@@ -52,7 +53,8 @@ Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights
 
 **Frente 2: Visualização & Business Intelligence (Power BI)**
 - [x] **Resolução de Infraestrutura:** Conexão direta Power BI Desktop -> Supabase Pooler configurada, ignorando bloqueios de certificado SSL da nuvem.
-- [ ] **Construção do Dashboard:** Visualizações de tempo real e gráficos de acompanhamento conectadas ao modelo semântico local.
+- [x] **Construção do Dashboard:** Visualizações de tempo real (Página 1) e gráficos de acompanhamento agregado (Página 2) conectadas ao modelo semântico local.
+- [ ] **Refinamento de UI/UX:** Aplicar Dark Mode e transformar os alertas tabulares em Cartões KPI dinâmicos.
 
 **Frente 3: Refinamento e Teste Final**
 - [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento) e reativar o teste `not_null` da luminosidade no `schema.yml` da Silver.
