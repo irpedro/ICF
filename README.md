@@ -2,6 +2,15 @@
 
 Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do clima e umidade do solo, transmitindo os dados diretamente para um Data Lake na nuvem (Supabase/PostgreSQL) via API REST. O projeto adota a **Arquitetura Medalhão (Bronze, Silver, Gold)** e o paradigma **ELT (Extract, Load, Transform)** para garantir a qualidade, rastreabilidade e segurança dos dados.
 
+## 📊 Dashboard Interativo (Power BI)
+*Interaja com o relatório ao vivo abaixo. Utilize as setas no rodapé do painel para navegar entre as visões de Tempo Real, Resumo Tático (7 Dias) e Visão Estratégica Mensal.*
+
+🔗 **[Clique aqui para abrir o Dashboard em tela cheia em uma nova aba](https://app.powerbi.com/view?r=eyJrIjoiOGE3NzM3YWQtZGVhMC00OTc4LTliOTEtMTU5MDE3ZTk1MjgyIiwidCI6IjdlOTNlMjg2LWIyOWEtNDQ1NC1hNDFhLWU4NDE5ZWM5ZGViNSJ9&pageName=fdfbc4c6a69c2e7bc151)**
+
+<iframe title="Dashboard_Monitoramento_Plantas_IoT" width="100%" height="460" src="https://app.powerbi.com/view?r=eyJrIjoiOGE3NzM3YWQtZGVhMC00OTc4LTliOTEtMTU5MDE3ZTk1MjgyIiwidCI6IjdlOTNlMjg2LWIyOWEtNDQ1NC1hNDFhLWU4NDE5ZWM5ZGViNSJ9&pageName=fdfbc4c6a69c2e7bc151" frameborder="0" allowFullScreen="true"></iframe>
+
+---
+
 ## 🏗️ Arquitetura e Engenharia de Dados (ELT)
 
 1. **Hardware (Edge Computing):** ESP32-C3 SuperMini programado em MicroPython.
@@ -53,8 +62,9 @@ Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights
 
 **Frente 2: Visualização & Business Intelligence (Power BI)**
 - [x] **Resolução de Infraestrutura:** Conexão direta Power BI Desktop -> Supabase Pooler configurada, ignorando bloqueios de certificado SSL da nuvem.
-- [x] **Construção do Dashboard:** Visualizações de tempo real (Página 1) e gráficos de acompanhamento agregado (Página 2) conectadas ao modelo semântico local.
-- [x] **Refinamento de UI/UX:** Aplicar Dark Mode e transformar os alertas tabulares em Cartões KPI dinâmicos.
+- [x] **Construção do Dashboard:** Visualizações de tempo real (Página 1) e gráficos de acompanhamento agregado (Página 2, 3 e 4) conectadas ao modelo semântico local.
+- [x] **Refinamento de UI/UX:** Dark Mode aplicado, com métricas complexas transformadas em Cartões KPI dinâmicos e Tooltips.
+- [x] **Deploy:** Publicação do painel interativo diretamente no GitHub (Web Embed).
 
 **Frente 3: Refinamento e Teste Final**
 - [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento).
