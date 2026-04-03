@@ -14,6 +14,7 @@ WITH leituras_com_lag AS (
         p.lux_min,
         p.horas_luz_minimas,
         p.horas_descanso_minimas,
+        ((3050 - l.umidade_solo_raw) / (3050 - 600.0)) * 100 AS umidade_solo_pct,
         
         -- Calcula o intervalo bruto em minutos desde a última leitura
         EXTRACT(EPOCH FROM (l.data_leitura_sp - LAG(l.data_leitura_sp) OVER (PARTITION BY DATE(l.data_leitura_sp) ORDER BY l.data_leitura_sp))) / 60.0 AS delta_minutos
@@ -45,7 +46,8 @@ agregacao_diaria AS (
         AVG(luz_par_ppfd) AS par_ppfd_medio,
         
         SUM(minutos_desde_ultima_leitura) AS total_minutos_monitorados,
-        
+        AVG(umidade_solo_pct) AS umid_solo_media,
+
         -- Calculamos o tempo total de exposição à luz e escuridão com base no limiar de 50 lux dividindo o dia em períodos de luz e escuridão
         SUM(CASE WHEN luz_lux >= 50 THEN minutos_desde_ultima_leitura ELSE 0 END) / 60.0 AS horas_sol_util,
         SUM(CASE WHEN luz_lux < 50 THEN minutos_desde_ultima_leitura ELSE 0 END) / 60.0 AS horas_escuridao,
@@ -64,6 +66,7 @@ SELECT
     ROUND(par_ppfd_medio, 2) AS par_ppfd_medio,
     ROUND(horas_sol_util, 2) AS horas_sol_util_diarias,
     ROUND(horas_escuridao, 2) AS horas_descanso_diarias,
+    ROUND(umid_solo_media, 1) AS umidade_solo_media_pct,
     
     -- Limitamos a 100% para evitar flutuações decimais (ex: 100.3%)
     LEAST(ROUND((total_minutos_monitorados / 1440.0) * 100, 1), 100.0) AS taxa_cobertura_dados_pct,

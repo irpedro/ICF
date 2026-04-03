@@ -54,9 +54,9 @@ Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights
 **Frente 2: Visualização & Business Intelligence (Power BI)**
 - [x] **Resolução de Infraestrutura:** Conexão direta Power BI Desktop -> Supabase Pooler configurada, ignorando bloqueios de certificado SSL da nuvem.
 - [x] **Construção do Dashboard:** Visualizações de tempo real (Página 1) e gráficos de acompanhamento agregado (Página 2) conectadas ao modelo semântico local.
-- [ ] **Refinamento de UI/UX:** Aplicar Dark Mode e transformar os alertas tabulares em Cartões KPI dinâmicos.
+- [x] **Refinamento de UI/UX:** Aplicar Dark Mode e transformar os alertas tabulares em Cartões KPI dinâmicos.
 
 **Frente 3: Refinamento e Teste Final**
-- [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento) e reativar o teste `not_null` da luminosidade no `schema.yml` da Silver.
+- [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento).
 - [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
 - [ ] **Teste Final em Produção:** Testar e monitorar a planta com o projeto completo rodando em Deep Sleep.

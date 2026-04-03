@@ -110,3 +110,7 @@ models:
         description: "Alerta de saúde baseado nas metas de luz, descanso e Uptime do sensor."
         tests:
           - not_null
+      - name: umidade_solo_media_pct
+        description: "Umidade média do solo no dia, calculada a partir das leituras capacitivas."
+        tests:
+          - not_null
