@@ -3,7 +3,7 @@ name: Deploy dbt Docs to GitHub Pages
 on:
   push:
     branches:
-      - main # ou master, dependendo de como está a sua branch principal
+      - main
 
 jobs:
   build-and-deploy-docs:
@@ -17,6 +17,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      # --- BLOCO DE CACHE ---
+      - name: Cache das dependências do Python (pip)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-dbt-postgres-1.10
 
       - name: Instalar dbt-postgres
         run: pip install dbt-postgres==1.10.0
