@@ -46,10 +46,15 @@ jobs:
                 threads: 1
           EOF
 
-      - name: Gerar Documentação do dbt
+      - name: Rodar Testes de Qualidade de Dados
         run: |
           cd plant_sensor_dbt
           dbt deps
+          dbt test
+
+      - name: Gerar Documentação do dbt
+        run: |
+          cd plant_sensor_dbt
           dbt docs generate
 
       - name: Publicar no GitHub Pages
