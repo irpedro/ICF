@@ -1,0 +1,52 @@
+name: Deploy dbt Docs to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # ou master, dependendo de como está a sua branch principal
+
+jobs:
+  build-and-deploy-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dbt-postgres
+        run: pip install dbt-postgres==1.10.0
+
+      - name: Configurar conexão com o Supabase (profiles.yml)
+        run: |
+          mkdir -p ~/.dbt
+          cat << EOF > ~/.dbt/profiles.yml
+          plant_sensor_dbt:
+            target: dev
+            outputs:
+              dev:
+                type: postgres
+                host: ${{ secrets.SUPABASE_HOST }}
+                user: ${{ secrets.SUPABASE_USER }}
+                password: ${{ secrets.SUPABASE_PASSWORD }}
+                port: 6543
+                dbname: postgres
+                schema: public
+                threads: 1
+          EOF
+
+      - name: Gerar Documentação do dbt
+        run: |
+          cd plant_sensor_dbt
+          dbt deps
+          dbt docs generate
+
+      - name: Publicar no GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./plant_sensor_dbt/target
