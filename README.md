@@ -73,3 +73,16 @@ Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights
 - [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento).
 - [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
 - [ ] **Teste Final em Produção:** Testar e monitorar a planta com o projeto completo rodando em Deep Sleep.
+
+## 🚀 Visão de Futuro e Escalabilidade
+
+O projeto foi desenhado seguindo princípios de arquitetura modular, permitindo a sua evolução de uma ferramenta de monitorização pessoal para uma plataforma escalável (SaaS). As próximas etapas de desenvolvimento focam-se em:
+
+### 1. Desacoplamento e Multi-tenancy
+Atualmente, as notificações estão configuradas para um utilizador administrativo. A evolução prevê a criação de uma camada de gestão de utilizadores no PostgreSQL, onde cada sensor é vinculado a um `id_utilizador`. 
+- **Notificações Dinâmicas:** O motor de regras no Make.com passará a consultar o `telegram_chat_id` diretamente da base de dados, permitindo que o sistema suporte múltiplos utilizadores em simultâneo.
+
+### 2. Interface de Utilizador (Portal de Gestão)
+Para eliminar a necessidade de configuração via SQL por parte do utilizador, está prevista a criação de um Front-end unificado.
+- **Provisionamento Self-service:** Interface para registo de novos sensores e mapeamento de espécies botânicas.
+- **Dashboards Dinâmicos:** Integração com Power BI através de filtragem dinâmica de parâmetros, permitindo que o utilizador visualize os dados específicos de cada sensor de forma isolada num único ambiente centralizado.
