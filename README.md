@@ -71,8 +71,24 @@ Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights
 
 **Frente 3: Refinamento e Teste Final**
 - [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento).
-- [ ] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
+- [x] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
+- [ ] **Documentação Visual (Make.com):** Criar diretório `/docs/images` para hospedar os prints arquiteturais dos cenários e realizar o commit final.
 - [ ] **Teste Final em Produção:** Testar e monitorar a planta com o projeto completo rodando em Deep Sleep.
+
+## 🤖 Automação e Alertas (Make.com + Telegram)
+
+Para fechar o ciclo de dados (do hardware até a palma da mão), foi implementada uma camada de orquestração rodando 100% na nuvem utilizando o **Make.com**. A arquitetura foi desenhada no padrão *Scheduled Multiplexer* para otimizar o uso da infraestrutura gratuita, avaliando múltiplas regras de negócio em uma única execução.
+
+O fluxo é ativado a cada 6 horas e consome diretamente a Camada Gold do dbt (Supabase), ramificando-se em três rotas analíticas distintas:
+
+* **Rota A (Observabilidade de Hardware):** Verifica a saúde da infraestrutura calculando o `minutos_offline` (Timestamp do Servidor vs. Último envio do ESP32). Dispara alertas críticos se a placa perder conexão Wi-Fi ou bateria.
+* **Rota B (Prevenção e Saúde da Planta):** Monitoriza regras de negócio críticas, como "Solo Seco". Possui um sistema integrado de *Cooldown* (usando Make Data Stores) que bloqueia envios repetidos por 12 horas, atuando como um filtro Anti-Spam.
+* **Rota C (Fechamento do Dia):** Protegida por um filtro de *Timezone* que só abre a catraca às 20h. Faz um `LEFT JOIN` on-the-fly entre a foto de momento (tabela granulada) e as agregações do dbt (tabela diária), enviando um boletim completo com:
+    * Máximas e Mínimas do dia (Temperatura e Umidade).
+    * *Daily Light Integral* (Horas de Sol Útil e Diagnóstico de Saúde Luminosa).
+    * Uptime real do sistema (% de confiabilidade dos dados nas últimas 24h).
+
+> 💡 **Nota de Reprodutibilidade:** Os cenários do Make.com e o Bot do Telegram possuem chaves de API privadas (Hardcoded Tokens) e não estão diretamente disponíveis no repositório. Para replicar este projeto, será necessário configurar o seu próprio *bot* via BotFather e conectar os webhooks da sua conta Make ao seu banco de dados PostgreSQL. Para conferir a estrutura visual dos cenários, consulte a pasta `/docs/images`.
 
 ## 🚀 Visão de Futuro e Escalabilidade
 
