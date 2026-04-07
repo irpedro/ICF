@@ -53,28 +53,6 @@ Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights
   * 🔗 **[Clique aqui para acessar o Dicionário de Dados Interativo (dbt docs)](https://irpedro.github.io/ICF/)** gerado automaticamente via CI/CD (GitHub Actions).
 * **Testes Automatizados:** Validação de integridade (`unique`, `not_null`) aplicada diretamente nas camadas Silver e Gold através do ficheiro `schema.yml`.
 
-## 🚀 Próximos Passos
-- [x] **Ingestão (Bronze) & Tratamento (Silver):** Hardware enviando dados e visualização limpa configurada no Supabase.
-- [x] **Calibração do Solo:** Limites físicos testados e mapeados.
-- [x] **Dicionário Científico:** Arquivo *seed* estático no dbt criado com limites da literatura agronômica.
-- [x] **Camada Gold (Negócio):** View final desenvolvida cruzando leituras com limites biológicos.
-
-**Frente 1: Hardware & Engenharia de Dados (Coleta de Luz)**
-- [x] **Configuração do BH1750:** Otimizado o `main.py` para utilizar a biblioteca do sensor de luz digital I2C (pinos 5 e 6).
-- [x] **Nova Modelagem dbt (DLI):** Desenvolvida a tabela `gold_diaria_monitorizacao` para calcular o acúmulo de horas de luz úteis diárias.
-
-**Frente 2: Visualização & Business Intelligence (Power BI)**
-- [x] **Resolução de Infraestrutura:** Conexão direta Power BI Desktop -> Supabase Pooler configurada, ignorando bloqueios de certificado SSL da nuvem.
-- [x] **Construção do Dashboard:** Visualizações de tempo real (Página 1) e gráficos de acompanhamento agregado (Página 2, 3 e 4) conectadas ao modelo semântico local.
-- [x] **Refinamento de UI/UX:** Dark Mode aplicado, com métricas complexas transformadas em Cartões KPI dinâmicos e Tooltips.
-- [x] **Deploy:** Publicação do painel interativo diretamente no GitHub (Web Embed).
-
-**Frente 3: Refinamento e Teste Final**
-- [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento).
-- [x] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
-- [ ] **Documentação Visual (Make.com):** Criar diretório `/docs/images` para hospedar os prints arquiteturais dos cenários e realizar o commit final.
-- [ ] **Teste Final em Produção:** Testar e monitorar a planta com o projeto completo rodando em Deep Sleep.
-
 ## 🤖 Automação e Alertas (Make.com + Telegram)
 
 Para fechar o ciclo de dados (do hardware até a palma da mão), foi implementada uma camada de orquestração rodando 100% na nuvem utilizando o **Make.com**. A arquitetura foi desenhada no padrão *Scheduled Multiplexer* para otimizar o uso da infraestrutura gratuita, avaliando múltiplas regras de negócio em uma única execução.
@@ -102,3 +80,25 @@ Atualmente, as notificações estão configuradas para um utilizador administrat
 Para eliminar a necessidade de configuração via SQL por parte do utilizador, está prevista a criação de um Front-end unificado.
 - **Provisionamento Self-service:** Interface para registo de novos sensores e mapeamento de espécies botânicas.
 - **Dashboards Dinâmicos:** Integração com Power BI através de filtragem dinâmica de parâmetros, permitindo que o utilizador visualize os dados específicos de cada sensor de forma isolada num único ambiente centralizado.
+
+## 🚀 Próximos Passos
+- [x] **Ingestão (Bronze) & Tratamento (Silver):** Hardware enviando dados e visualização limpa configurada no Supabase.
+- [x] **Calibração do Solo:** Limites físicos testados e mapeados.
+- [x] **Dicionário Científico:** Arquivo *seed* estático no dbt criado com limites da literatura agronômica.
+- [x] **Camada Gold (Negócio):** View final desenvolvida cruzando leituras com limites biológicos.
+
+**Frente 1: Hardware & Engenharia de Dados (Coleta de Luz)**
+- [x] **Configuração do BH1750:** Otimizado o `main.py` para utilizar a biblioteca do sensor de luz digital I2C (pinos 5 e 6).
+- [x] **Nova Modelagem dbt (DLI):** Desenvolvida a tabela `gold_diaria_monitorizacao` para calcular o acúmulo de horas de luz úteis diárias.
+
+**Frente 2: Visualização & Business Intelligence (Power BI)**
+- [x] **Resolução de Infraestrutura:** Conexão direta Power BI Desktop -> Supabase Pooler configurada, ignorando bloqueios de certificado SSL da nuvem.
+- [x] **Construção do Dashboard:** Visualizações de tempo real (Página 1) e gráficos de acompanhamento agregado (Página 2, 3 e 4) conectadas ao modelo semântico local.
+- [x] **Refinamento de UI/UX:** Dark Mode aplicado, com métricas complexas transformadas em Cartões KPI dinâmicos e Tooltips.
+- [x] **Deploy:** Publicação do painel interativo diretamente no GitHub (Web Embed).
+
+**Frente 3: Refinamento e Teste Final**
+- [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento).
+- [x] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
+- [ ] **Documentação Visual (Make.com):** Criar diretório `/docs/images` para hospedar os prints arquiteturais dos cenários e realizar o commit final.
+- [ ] **Teste Final em Produção:** Testar e monitorar a planta com o projeto completo rodando em Deep Sleep.
