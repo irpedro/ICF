@@ -15,7 +15,7 @@ WITH leituras_com_lag AS (
         p.lux_min,
         p.horas_luz_minimas,
         p.horas_descanso_minimas,
-        ((3050 - l.umidade_solo_raw) / (3050 - 600.0)) * 100 AS umidade_solo_pct,
+        ((3050 - l.umidade_solo_raw) / (3050 - 1420.0)) * 100 AS umidade_solo_pct,
         
         -- Calcula o intervalo bruto em minutos desde a última leitura
         EXTRACT(EPOCH FROM (l.data_leitura_sp - LAG(l.data_leitura_sp) OVER (PARTITION BY DATE(l.data_leitura_sp), l.dispositivo ORDER BY l.data_leitura_sp))) / 60.0 AS delta_minutos
