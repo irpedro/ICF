@@ -15,15 +15,34 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 
 ## 🏗️ Arquitetura e Engenharia de Dados (ELT)
 
-1. **Hardware (Edge Computing):** ESP32-C3 SuperMini programado em MicroPython.
+1. **Hardware (Edge Computing & Segurança):** ESP32-C3 SuperMini programado em MicroPython. Implementa cofre de senhas (`secrets.py`) para isolamento de credenciais e utiliza um Display OLED (SSD1306) via I2C para observabilidade e telemetria física em tempo real.
 2. **Sensores:** DHT22 (Temperatura/Umidade do Ar), Sensor de Umidade do Solo Analógico e Sensor de Luz Digital (BH1750 via I2C).
 3. **Eficiência Energética:** Utiliza `machine.deepsleep()` para economizar bateria entre os ciclos de leitura.
 4. **Extração e Carregamento (E e L):** Envio direto do hardware para a Camada Bronze do Supabase via HTTP POST, armazenando o payload bruto em uma coluna `JSONB`. Scripts em Python funcionam como via de contingência para APIs externas.
 5. **Transformação via dbt (T):** O Data Build Tool atua diretamente dentro do Data Lake operando nas camadas seguintes:
    * **Camada Silver:** View (`vw_leituras_silver`) responsável por descompactar o JSON, converter os tipos, ajustar o fuso horário e aplicar políticas de segurança.
-   * **Camada Gold (Roteamento Dinâmico & Agregação):** Dividida em duas *Fato* principais:
-     * **Granulada (Tempo Real):** Cruzamento das leituras de momento com os limites biológicos via seed (`cadastro_sensores.csv`). Gera alertas imediatos de temperatura e rega.
-     * **Agregada (Resumo Diário):** Modelagem focada no *Daily Light Integral* (DLI), agrupando os dados de luminosidade do sensor BH1750 para calcular o tempo total de exposição solar útil no dia.
+   * **Camada Gold (Calibração & Agregação):** Dividida em Fato Granulada (Aplica regra de três invertida travada para calibrar o sensor de solo de ADC para % e cruza com limites biológicos) e Fato Agregada (Resumo diário focando no cálculo de DLI - Daily Light Integral).
+6. **Rastreabilidade Histórica (SCD Tipo 2):** A modelagem utiliza *Slowly Changing Dimensions* do Tipo 2 para garantir que o histórico passado permaneça imutável em caso de troca física de plantas no mesmo hardware.
+7. **Orquestração e Alertas (Make.com):** Multiplexador na nuvem que consome o banco de dados e alimenta um Bot no Telegram. Conta com envio de Alertas Críticos (solo seco com sistema de *cooldown*) e um Menu Interativo para solicitação de relatórios de saúde sob demanda.
+8. **Visualização Automática (Power BI):** Dashboard interativo conectado diretamente ao Supabase via Pooler de conexões. Configurado com rotinas de *Scheduled Refresh* (Atualização Agendada) no Power BI Service para garantir dados sempre atualizados múltiplas vezes ao dia.
+
+### 🔄 Manual de Operação: Troca de Plantas e Novos Dispositivos
+
+Como o projeto utiliza a arquitetura **SCD Tipo 2**, a gestão de sensores e vasos é feita diretamente no arquivo `seeds/cadastro_sensores.csv`. 
+
+#### 1. Sincronização Obrigatória (Hardware x Banco)
+⚠️ **Atenção:** O nome definido na coluna `dispositivo` (ex: `esp32_c3_supermini`) deve ser **idêntico** à string de identificação enviada pelo código no `main.py`. Atualmente, essa identificação é feita diretamente no payload JSON do hardware. Caso os nomes não coincidam exatamente (incluindo letras maiúsculas e minúsculas), os dados serão carregados na Camada Bronze mas aparecerão como "Planta Desconhecida" no Power BI.
+
+#### 2. Como Registrar uma Troca de Planta
+Sempre que o sensor for movido para um novo vaso:
+- **Encerrar o ciclo atual:** No CSV, localize a linha do dispositivo e altere a `data_fim` para o momento exato da troca (ex: `2026-04-09 00:40:00`).
+- **Iniciar o novo ciclo:** Adicione uma nova linha com o mesmo nome de `dispositivo`, o nome da nova planta, e a `data_inicio` sendo 1 segundo após o fim da anterior. Defina a `data_fim` para `2099-12-31 23:59:59`.
+
+#### 3. Como Adicionar um Novo Sensor
+Para escalar o projeto com novos ESP32:
+- Adicione uma linha inédita no CSV com o novo identificador do dispositivo.
+- Certifique-se de que o novo hardware esteja programado para enviar esse exato identificador no seu código principal.
+- Execute o comando `dbt build` para atualizar as tabelas de roteamento.
 
 ## 📁 Estrutura do Projeto
 * `/main.py`: O código principal de produção otimizado para a placa.
@@ -82,14 +101,15 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - **Dashboards Dinâmicos:** Integração com Power BI através de filtragem dinâmica de parâmetros, permitindo que o utilizador visualize os dados específicos de cada sensor de forma isolada num único ambiente centralizado.
 
 ## 🚀 Próximos Passos
-- [x] **Ingestão (Bronze) & Tratamento (Silver):** Hardware enviando dados e visualização limpa configurada no Supabase.
-- [x] **Calibração do Solo:** Limites físicos testados e mapeados.
-- [x] **Dicionário Científico:** Arquivo *seed* estático no dbt criado com limites da literatura agronômica.
-- [x] **Camada Gold (Negócio):** View final desenvolvida cruzando leituras com limites biológicos.
 
-**Frente 1: Hardware & Engenharia de Dados (Coleta de Luz)**
-- [x] **Configuração do BH1750:** Otimizado o `main.py` para utilizar a biblioteca do sensor de luz digital I2C (pinos 5 e 6).
-- [x] **Nova Modelagem dbt (DLI):** Desenvolvida a tabela `gold_diaria_monitorizacao` para calcular o acúmulo de horas de luz úteis diárias.
+**Frente 1: Engenharia de Dados & dbt (Supabase)**
+- [x] **Ingestão Raw:** Tabela Bronze de *Log Append-Only* recebendo JSON do ESP32 via REST API.
+- [x] **Normalização Silver:** Desestruturação do JSON (`dados_json->>'temperature_c'`) com tipagem rígida (CAST) e fuso horário corrigido para `America/Sao_Paulo`.
+- [x] **Calibração de Hardware (Gold):** Conversão dos valores brutos (ADC) do sensor capacitivo de solo para percentual (0-100%) através de regra de três invertida travada (limites de 3050 a 600).
+- [x] **Master Data (Seeds):** Criação de tabelas de dimensão em CSV com limites biológicos de 6+ espécies de plantas baseados em literatura botânica.
+- [x] **Modelagem de Histórico (SCD Tipo 2):** Implementação de *Slowly Changing Dimensions* na tabela de dimensões (`cadastro_sensores.csv`) utilizando *Range JOINs* na Camada Gold. Garante a imutabilidade do histórico botânico em caso de troca física de plantas usando o mesmo hardware.
+- [x] **Enriquecimento Gold:** Views materializadas aplicando regras de negócio e limites biológicos (Alertas de saúde) sobre os dados limpos.
+- [x] **Cálculo de DLI (Daily Light Integral):** CTE avançada na tabela `gold_diaria_monitorizacao` para calcular o acúmulo de horas de luz úteis diárias.
 
 **Frente 2: Visualização & Business Intelligence (Power BI)**
 - [x] **Resolução de Infraestrutura:** Conexão direta Power BI Desktop -> Supabase Pooler configurada, ignorando bloqueios de certificado SSL da nuvem.
@@ -97,8 +117,13 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - [x] **Refinamento de UI/UX:** Dark Mode aplicado, com métricas complexas transformadas em Cartões KPI dinâmicos e Tooltips.
 - [x] **Deploy:** Publicação do painel interativo diretamente no GitHub (Web Embed).
 
-**Frente 3: Refinamento e Teste Final**
-- [ ] **Reset da Camada Bronze:** Apagar os dados de teste ("lixo" de desenvolvimento).
-- [x] **Automação Ativa (Opcional):** Implementar webhooks com n8n para disparo de alertas.
-- [ ] **Documentação Visual (Make.com):** Criar diretório `/docs/images` para hospedar os prints arquiteturais dos cenários e realizar o commit final.
-- [ ] **Teste Final em Produção:** Testar e monitorar a planta com o projeto completo rodando em Deep Sleep.
+**Frente 3: Edge Computing, Orquestração e Entrega**
+- [x] **Segurança e Observabilidade na Borda:** Separação de credenciais em `secrets.py` e programação de Display OLED (SSD1306) via I2C para telemetria e debug físico em tempo real.
+- [x] **Automação e Orquestração (Make.com):** Multiplexador de rotas com sistema de *Cooldown* para alertas críticos (solo seco) e relatórios diários via Telegram Bot.
+- [x] **Deploy Físico (MVP):** Instalação do hardware em ambiente real (Aloe Vera).
+- [x] **Evolução de Arquitetura (SCD2):** Ajuste de contrato no `schema.yml` para habilitar a rastreabilidade temporal dos sensores sem quebrar compilações.
+- [ ] **Reset da Camada Bronze:** Limpeza dos dados de laboratório (Truncate) via SQL para início do log histórico oficial de produção.
+- [ ] **Refatoração de Código (Hardware):** Implementar variável global `ID_DO_SENSOR` no `main.py` para facilitar a escalabilidade de novos dispositivos.
+- [ ] **Política de Retenção de Dados:** Implementar rotina no Supabase (via *pg_cron* ou Trigger) para deletar logs da tabela `leituras_brutas_bronze` mais velhos que 3 meses, otimizando o armazenamento.
+- [ ] **Teste de Estresse Botânico:** Executar a troca temporal (SCD2) para Samambaia no intuito de forçar o disparo de alertas no Telegram.
+- [ ] **Documentação Visual e Vídeo:** Criar diretório `/docs/images` e produzir o vídeo demonstrativo do "Produto de Dados" para as cadeiras de SI e Gestão Ambiental.

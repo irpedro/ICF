@@ -39,8 +39,15 @@ seeds:
         description: "Identificador único do microcontrolador (ex: esp32_c3_supermini)."
         tests:
           - not_null
-          - unique
       - name: nome_planta
         description: "Nome popular da planta associada ao dispositivo. Usado como chave para buscar os limites científicos."
+        tests:
+          - not_null
+      - name: data_inicio
+        description: "Início do monitoramento desta planta específica."
+        tests:
+          - not_null
+      - name: data_fim
+        description: "Fim do monitoramento (Use 2099-12-31 para o registro ativo)."
         tests:
           - not_null

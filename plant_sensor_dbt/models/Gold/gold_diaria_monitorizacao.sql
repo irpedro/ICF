@@ -7,6 +7,7 @@ WITH leituras_com_lag AS (
     SELECT 
         l.data_leitura_sp,
         DATE(l.data_leitura_sp) AS data_ref,
+        l.dispositivo,
         l.temperatura_c,
         l.umidade_ar_pct,
         l.luz_raw AS luz_lux,
@@ -17,10 +18,14 @@ WITH leituras_com_lag AS (
         ((3050 - l.umidade_solo_raw) / (3050 - 600.0)) * 100 AS umidade_solo_pct,
         
         -- Calcula o intervalo bruto em minutos desde a última leitura
-        EXTRACT(EPOCH FROM (l.data_leitura_sp - LAG(l.data_leitura_sp) OVER (PARTITION BY DATE(l.data_leitura_sp) ORDER BY l.data_leitura_sp))) / 60.0 AS delta_minutos
+        EXTRACT(EPOCH FROM (l.data_leitura_sp - LAG(l.data_leitura_sp) OVER (PARTITION BY DATE(l.data_leitura_sp), l.dispositivo ORDER BY l.data_leitura_sp))) / 60.0 AS delta_minutos
 
     FROM {{ ref('vw_leituras_silver') }} l
-    JOIN {{ ref('cadastro_sensores') }} c ON l.dispositivo = c.dispositivo
+    -- Juntamos com o cadastro de sensores para descobrir qual planta está sendo monitorizada e depois com os limites científicos para obter as metas de luz e descanso para cada planta.
+    JOIN {{ ref('cadastro_sensores') }} c 
+        ON l.dispositivo = c.dispositivo
+        AND l.data_leitura_sp >= c.data_inicio
+        AND l.data_leitura_sp <= c.data_fim
     JOIN {{ ref('limites_plantas_cientifico') }} p ON c.nome_planta = p.nome_popular
 ),
 
@@ -41,6 +46,7 @@ leituras_enriquecidas AS (
 agregacao_diaria AS (
     SELECT 
         data_ref,
+        dispositivo,
         AVG(temperatura_c) AS temp_media,
         AVG(umidade_ar_pct) AS umid_media,
         AVG(luz_par_ppfd) AS par_ppfd_medio,
@@ -55,12 +61,13 @@ agregacao_diaria AS (
         MAX(horas_luz_minimas) AS meta_luz,
         MAX(horas_descanso_minimas) AS meta_descanso
     FROM leituras_enriquecidas
-    GROUP BY data_ref
+    GROUP BY data_ref, dispositivo
 )
 
 -- Na tabela final, calculamos a taxa de cobertura dos dados e aplicamos as regras de alerta para saúde luminosa
 SELECT 
     data_ref,
+    dispositivo,
     ROUND(temp_media, 1) AS temperatura_media_c,
     ROUND(umid_media, 1) AS umidade_media_pct,
     ROUND(par_ppfd_medio, 2) AS par_ppfd_medio,

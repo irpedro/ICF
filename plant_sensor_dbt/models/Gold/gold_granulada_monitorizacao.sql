@@ -18,6 +18,7 @@ limites_cientificos AS (
 cruzamento AS (
     SELECT 
         l.id,
+        l.dispositivo,
         l.data_leitura_sp,
         l.temperatura_c,
         l.umidade_ar_pct,    
@@ -44,6 +45,8 @@ cruzamento AS (
     -- 1º JOIN: Descobre a planta com base no MAC Address / Dispositivo
     LEFT JOIN cadastro_sensores cs 
         ON l.dispositivo = cs.dispositivo
+        AND l.data_leitura_sp >= cs.data_inicio 
+        AND l.data_leitura_sp <= cs.data_fim
         
     -- 2º JOIN: Busca os limites biológicos da planta que acabamos de descobrir
     LEFT JOIN limites_cientificos c 
