@@ -58,13 +58,22 @@ Para rodar as transformações locais e gerar a documentação da Camada Gold, �
 
 ## 📐 Calibração e Regras de Negócio (Camada Gold)
 
-Os sensores retornam valores brutos. Para gerar métricas amigáveis e *insights* acionáveis, aplicamos as seguintes transformações:
+Alguns dos sensores retornam valores brutos. Para gerar métricas amigáveis e *insights* acionáveis, aplicamos as seguintes transformações:
 
-1. **Umidade do Solo (Calibração Empírica):** Os valores brutos de voltagem (0-4095) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três) em SQL:
-   * `3050` = 0% de Umidade (Sensor seco)
-   * `600` = 100% de Umidade (Sensor submerso)
-2. **Luminosidade (Sensor BH1750 I2C):** Leitura de altíssima precisão em Lux. Os dados são agregados na tabela `gold_diaria_monitorizacao` para definir a saúde fotossintética do dia.
-   * Foi implementada uma separação semântica entre o limiar físico de escuridão (< 50 lux) para medir o fotoperíodo, e o limite biológico de fotossíntese (lux_min) para gerar alertas de saúde da planta.
+1. **Umidade do Solo (Calibração Agronômica vs. Hobbyista):** Durante a fase de testes (PoC), foi identificado que a calibração padrão de mercado para sensores capacitivos *low-cost* (utilizando um copo de água pura como 100%) "esmaga" a escala de leitura. Como a água pura possui uma constante dielétrica muito maior que a terra, e o sensor possui um raio de leitura local (visão de túnel de ~2 a 3 cm), a umidade real da planta raramente passava dos 30% no painel.
+
+   * **Pivot de Engenharia:** Para refletir a biologia real da planta, o sistema foi recalibrado utilizando o método de **Capacidade de Campo** (Ponto de Saturação Máxima da terra). 
+
+   * Os valores brutos de voltagem (ADC) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três Inversa) fixada nos seguintes limites na Camada Gold:
+     * `3050` = 0% de Umidade (Sensor no ar / Solo esturricado)
+     * `1420` = 100% de Umidade (Terra em saturação máxima / "Lama")
+
+2. **Conversão de Luminosidade (Lux para PPFD/PAR):** O hardware capta a intensidade da luz em *Lux*, uma métrica focada na percepção visual humana. No entanto, as regras de negócio agronômicas exigem a medição da Radiação Fotossinteticamente Ativa (PAR), medida em PPFD (µmol/m²/s). 
+
+   * **Transformação Analítica:** Na Camada Gold, os dados brutos de Lux sofrem uma transformação matemática para refletir a energia real disponível para a fotossíntese.
+
+   * **Fator de Conversão:** Utilizando a constante de aproximação para espectro de luz natural, a fórmula aplicada no dbt é `PPFD = Lux * 0.0185` (ou `Lux / 54`). Isso garante que a contagem de fótons seja biologicamente precisa para a regra de negócio da espécie cadastrada.
+
 3. **Enriquecimento Híbrido de Dados (Tabela Fato x Dimensão):** Os limites ideais de rega e luz para cada espécie são cruzados (`JOIN`) com as leituras. Utiliza-se a função `COALESCE` para priorizar a fonte primária (dicionário oficial ESALQ/USP em dbt seed) e usar a API Perenual apenas como *fallback*.
   
 ## 🧪 Qualidade de Dados e Governança (dbt)

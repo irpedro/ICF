@@ -1,17 +1,36 @@
-# 📚 Referências Científicas e Agronômicas
+# 📚 Referências Científicas e Tecnológicas
 
-As regras de negócio aplicadas na Camada Gold deste projeto (como tolerância à seca, limites de temperatura, conversão de Lux para PAR e fotoperíodo) não são arbitrárias. Elas foram fundamentadas em literatura científica e manuais técnicos de referência na botânica e agronomia brasileira.
+As regras de negócio e a arquitetura de dados aplicadas neste projeto não são arbitrárias. Elas foram fundamentadas em literatura científica (agronomia/física) e nos padrões da indústria de Engenharia de Software.
 
-## 1. Tolerância à Seca e Limites de Sombreamento
-Referência principal para a classificação da capacidade de sobrevivência das espécies ornamentais (ex: Zamioculca e Espada-de-são-jorge) em ambientes de interior.
+## 1. Tolerância à Seca e Sobrevivência Indoor
+Referência para a classificação da capacidade de sobrevivência das espécies ornamentais (ex: Aloe Vera e Samambaia) e determinação dos níveis de estresse hídrico.
+
 * LORENZI, Harri. **Plantas Ornamentais no Brasil: arbustivas, herbáceas e trepadeiras**. 4. ed. Nova Odessa, SP: Instituto Plantarum, 2008.
 
-## 2. Fotoperíodo e Exigência Luminosa (Lux e PAR)
-Estudos utilizados para basear as regras de horas mínimas de sol, horas de descanso (fase escura da fotossíntese) e a taxa de conversão estimada de Lux para PPFD (Radiação Fotossinteticamente Ativa).
-* OLIVEIRA, J. E. de. **Crescimento e anatomia de plantas ornamentais sob diferentes níveis de radiação**. Dissertação (Mestrado) - Escola Superior de Agricultura "Luiz de Queiroz" (ESALQ), Universidade de São Paulo (USP), Piracicaba, 2008.
-* ALVES, M. de C. **Avaliação de malhas fotosseletivas no cultivo de plantas ornamentais**. Tese (Doutorado) - Escola Superior de Agricultura "Luiz de Queiroz" (ESALQ), Universidade de São Paulo (USP), Piracicaba, 2011.
+## 2. Fotoperíodo e Exigência Luminosa (Lux para PPFD)
+Estudos e fórmulas utilizadas para basear as regras de horas mínimas de sol e a conversão matemática da iluminância visual (Lux) para a Radiação Fotossinteticamente Ativa (PPFD/PAR) utilizada na Camada Gold.
 
-## 3. Clima Tropical: Temperatura e Umidade do Ar
-Limites de segurança (mínimos e máximos) para o controle climático de estufas e cultivo *indoor*.
-* INSTITUTO AGRONÔMICO DE CAMPINAS (IAC); EMPRESA BRASILEIRA DE PESQUISA AGROPECUÁRIA (EMBRAPA). **Cultivo de Flores Anuais e Ornamentais**. Circular Técnica. Campinas, SP.
-* EMPRESA DE ASSISTÊNCIA TÉCNICA E EXTENSÃO RURAL DO DISTRITO FEDERAL (EMATER-DF). **Cartilha de Floricultura: Guia prático de plantas de interior**. Brasília, DF, 2009.
+* [OLIVEIRA, J. E. de. **Crescimento e anatomia de 'Begonia Megawatt' cultivadas sob diferentes telas de sombreamento**. Tese (Doutorado) - ESALQ/USP, Piracicaba, 2023](https://repositorio.usp.br/item/003153870).
+
+* [ALVES, M. de C. **Avaliação de malhas fotosseletivas no cultivo protegido de plantas ornamentais**. Tese (Doutorado) - ESALQ/USP, Piracicaba, 2025.](https://www.teses.usp.br/teses/disponiveis/11/11136/tde-18092025-112722/es.php)
+
+* **Fator de Conversão Matemática:** THIMIJAN, R. W.; HEINS, R. D. **Photometric, radiometric, and quantum light units of measure: A review of procedures for interconversion**. *HortScience*, 18(6), 818-822, 1983. *(Fonte da constante de aproximação onde 1 µmol/m²/s de luz natural ≈ 54 Lux).*
+
+## 3. Climatologia: Temperatura e Umidade do Ar (DHT22)
+Parâmetros de controle utilizados para definir as *flags* de alerta de "Estresse Térmico" e "Ar Seco" nas leituras do sensor ambiente (DHT22).
+
+* EMPRESA BRASILEIRA DE PESQUISA AGROPECUÁRIA (EMBRAPA). Manuais técnicos e circulares sobre ambiência e estresse térmico no cultivo protegido.
+
+## 4. Calibração de Sensores Capacitivos de Solo (IoT)
+Justificativa para o "Pivot de Engenharia", abandonando a calibração do sensor em água pura em favor da saturação do próprio solo (Capacidade de Campo).
+
+* **Padrão de Mercado/Hobby:** [DFRobot. Gravity: Analog Capacitive Soil Moisture Sensor - Product Wiki](https://wiki.dfrobot.com/Capacitive_Soil_Moisture_Sensor_SKU_SEN0193). 
+
+* **Padrão Agronômico:** [SCHWAMBACK, D., et al. Automated Low-Cost Soil Moisture Sensors: Trade-Off between Cost and Accuracy. *Sensors* (MDPI), 2023](https://www.mdpi.com/1424-8220/23/5/2451). Estudo que fundamenta a necessidade de calibrar o limite de 100% saturando a amostra do próprio solo, garantindo precisão biológica no Data Lake.
+
+## 5. Modelagem e Arquitetura de Dados
+Fundamentação teórica para as transformações em SQL (dbt) e rastreabilidade temporal.
+
+* **Arquitetura Medalhão (Bronze/Silver/Gold):** DATABRICKS. *What is a Medallion Architecture?* Padrão da indústria para organização lógica e qualidade em Data Lakes.
+
+* **Slowly Changing Dimensions (SCD Tipo 2):** KIMBALL, Ralph; ROSS, Margy. **The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling**. 3. ed. Wiley, 2013. *(Fundamentação para a rastreabilidade histórica das trocas de vasos no dbt).*

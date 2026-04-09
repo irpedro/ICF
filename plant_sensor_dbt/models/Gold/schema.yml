@@ -57,7 +57,7 @@ models:
       - name: umidade_solo_pct
         description: >
           Nível de umidade do solo convertido para percentagem (0% a 100%).
-          Cálculo baseado em calibração empírica do sensor capacitivo onde 3050 representa 0% (seco) e 600 representa 100% (submerso).
+          Cálculo baseado em calibração empírica do sensor capacitivo onde 3050 representa 0% (seco) e 1420 representa 100% (submerso).
         tests:
           - not_null
       - name: status_umidade_solo
