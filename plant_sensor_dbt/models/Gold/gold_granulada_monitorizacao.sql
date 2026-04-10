@@ -72,9 +72,17 @@ SELECT
 
     -- 3. Umidade do Solo
     CASE 
+        -- Regras de Teto (Excesso de Água)
+        WHEN tolerancia_seca = 'ALTA'  AND umidade_solo_pct >= 80 THEN 'ALERTA: Solo Encharcado (Risco de Podridão)'
+        WHEN tolerancia_seca = 'MEDIA' AND umidade_solo_pct >= 90 THEN 'ALERTA: Solo Encharcado (Risco de Podridão)'
+        WHEN tolerancia_seca = 'BAIXA' AND umidade_solo_pct >= 95 THEN 'ALERTA: Solo Encharcado (Risco de Podridão)'
+        
+        -- Regras de Piso (Seca)
         WHEN tolerancia_seca = 'ALTA'  AND umidade_solo_pct <= 20 THEN 'ALERTA: Solo Seco (Regar)'
         WHEN tolerancia_seca = 'MEDIA' AND umidade_solo_pct <= 40 THEN 'ALERTA: Solo Seco (Regar)'
         WHEN tolerancia_seca = 'BAIXA' AND umidade_solo_pct <= 60 THEN 'ALERTA: Solo Seco (Regar)'
+        
+        -- Faixa Ideal
         ELSE 'Umidade do Solo Adequada'
     END AS status_umidade_solo
 

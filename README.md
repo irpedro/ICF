@@ -60,13 +60,19 @@ Para rodar as transformações locais e gerar a documentação da Camada Gold, �
 
 Alguns dos sensores retornam valores brutos. Para gerar métricas amigáveis e *insights* acionáveis, aplicamos as seguintes transformações:
 
-1. **Umidade do Solo (Calibração Agronômica vs. Hobbyista):** Durante a fase de testes (PoC), foi identificado que a calibração padrão de mercado para sensores capacitivos *low-cost* (utilizando um copo de água pura como 100%) "esmaga" a escala de leitura. Como a água pura possui uma constante dielétrica muito maior que a terra, e o sensor possui um raio de leitura local (visão de túnel de ~2 a 3 cm), a umidade real da planta raramente passava dos 30% no painel.
+1. **Umidade do Solo (Calibração Agronômica vs. Hobbyista):** Durante a fase de testes (PoC), foi identificado que a calibração padrão de mercado para sensores capacitivos *low-cost* (utilizando um copo de água pura como sendo 100% de umidade) "esmaga" a escala de leitura. Como a água pura possui uma constante dielétrica muito maior que a terra, e o sensor possui um raio de leitura local (visão de túnel de ~2 a 3 cm), a umidade real da planta raramente passava dos 30% no painel.
 
    * **Pivot de Engenharia:** Para refletir a biologia real da planta, o sistema foi recalibrado utilizando o método de **Capacidade de Campo** (Ponto de Saturação Máxima da terra). 
 
    * Os valores brutos de voltagem (ADC) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três Inversa) fixada nos seguintes limites na Camada Gold:
      * `3050` = 0% de Umidade (Sensor no ar / Solo esturricado)
      * `1420` = 100% de Umidade (Terra em saturação máxima / "Lama")
+  
+    * **Desafio Físico de IoT (Lençol Freático Suspenso):** Durante os testes em vasos de pequeno porte (Suculentas), foram detectadas anomalias onde o banco de dados reportava 100% de saturação (risco de podridão) enquanto a superfície da terra apresentava umidade ideal. 
+
+      * Troubleshooting e Solução: A investigação física baseada em literatura agronômica revelou o fenômeno de *Perched Water Table* (Lençol Freático Suspenso), onde a gravidade não vence a capilaridade da terra em vasos rasos, criando uma camada perene de saturação no fundo do vaso. 
+
+      * Decisão Arquitetural: Em vez de realizar um *hardcoding* de calibração no SQL (o que prejudicaria a escalabilidade do código para vasos maiores), a solução adotada foi o **Ajuste de Posicionamento Físico (Z-Axis)** do hardware. O sensor foi recuado para a "zona das raízes", fugindo da saturação do fundo e normalizando os dados no Power BI sem adicionar dívida técnica ao dbt.
 
 2. **Conversão de Luminosidade (Lux para PPFD/PAR):** O hardware capta a intensidade da luz em *Lux*, uma métrica focada na percepção visual humana. No entanto, as regras de negócio agronômicas exigem a medição da Radiação Fotossinteticamente Ativa (PAR), medida em PPFD (µmol/m²/s). 
 
