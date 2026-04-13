@@ -39,17 +39,19 @@ cruzamento AS (
         c.umid_ar_min_pct,
         c.umid_ar_max_pct,
         c.tolerancia_seca,
-        TRUE AS flg_origem_dados_confiavel 
+        TRUE AS flg_origem_dados_confiavel,
+        cs.dispositivo || ' | ' || cs.nome_planta || ' (' || TO_CHAR(cs.data_inicio, 'DD/MM/YYYY') || ')' AS identificador_planta
+        
     FROM leituras l
     
     -- 1º JOIN: Descobre a planta com base no MAC Address / Dispositivo
-    LEFT JOIN cadastro_sensores cs 
+    JOIN cadastro_sensores cs 
         ON l.dispositivo = cs.dispositivo
         AND l.data_leitura_sp >= cs.data_inicio 
         AND l.data_leitura_sp <= cs.data_fim
         
     -- 2º JOIN: Busca os limites biológicos da planta que acabamos de descobrir
-    LEFT JOIN limites_cientificos c 
+    JOIN limites_cientificos c 
         ON cs.nome_planta = c.nome_popular
 )
 
