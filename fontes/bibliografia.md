@@ -28,6 +28,10 @@ Justificativa para o "Pivot de Engenharia", abandonando a calibração do sensor
 
 * **Padrão Agronômico:** [SCHWAMBACK, D., et al. Automated Low-Cost Soil Moisture Sensors: Trade-Off between Cost and Accuracy. *Sensors* (MDPI), 2023](https://www.mdpi.com/1424-8220/23/5/2451). Estudo que fundamenta a necessidade de calibrar o limite de 100% saturando a amostra do próprio solo, garantindo precisão biológica no Data Lake.
 
+* **Física da Constante Dielétrica no Solo:** [CALIFORNIA AGRICULTURE. *Soil type affects accuracy of dielectric moisture sensors* (Universidade da Califórnia)](https://californiaagriculture.org/article/109694-soil-type-affects-accuracy-of-dielectric-moisture-sensors.pdf) - Estudo que comprova a discrepância das constantes ($\kappa \approx 1$ para ar, $3-5$ para minerais e $80$ para água), fundamentando a falha de calibrar sensores de solo puramente em água.
+
+* **Volume de Sensibilidade (Raio de Influência):** [CHANZY, et al. *Development of a Capacitive Sensor for Monitoring Soil Moisture*. ASABE Technical Library](https://elibrary.asabe.org/abstract.asp?aid=18954) - Demonstra que a esfera de influência de sondas capacitivas limita-se a poucos centímetros ao redor dos eletrodos, tornando a leitura independente do volume total do vaso.
+
 ## 5. Modelagem e Arquitetura de Dados
 Fundamentação teórica para as transformações em SQL (dbt) e rastreabilidade temporal.
 
@@ -47,3 +51,5 @@ Fundamentação teórica para o diagnóstico e solução do "Lençol Freático S
   * [Why most Arduino Soil Moisture Sensors suck (Andreas Spiess / YouTube)](https://www.youtube.com/watch?v=udmJyncDvw0) - Referência clássica na comunidade Maker de IoT demonstrando que a inserção diagonal/oblíqua do hardware é obrigatória para evitar "canais de água" (*Water Channeling*), onde a água da rega escorre direto pelo corpo da placa enganando a leitura.
 
   * [Reverse Engineering the Capacitive Soil Moisture Sensor (YouTube)](https://www.youtube.com/watch?v=IGP38bz-K48) - Análise profunda e denúncia de defeitos de fabricação em lotes paralelos, especificamente a substituição do chip TLC555 pelo NE555 e a ausência de vias de aterramento (resistor de 1MΩ). O estudo justifica as anomalias elétricas e a compressão da escala de leitura ao operar o sensor em microcontroladores de 3.3V (como o ESP32).
+
+* **Limites de Irrigação (VWC vs. Tensão Matricial):** [OKLAHOMA STATE UNIVERSITY (OSU) EXTENSION. *Understanding Soil Water Content and Thresholds for Irrigation Management*](https://extension.okstate.edu/fact-sheets/understanding-soil-water-content-and-thresholds-for-irrigation-management.html) - Documentação detalhando a diferença entre Volumetric Water Content (VWC) e Soil Matric Potential (SMP), comprovando que o estresse hídrico está atrelado à tensão da raiz e ao tipo de solo (areia vs. argila), e não apenas ao volume absoluto de água.

@@ -1,3 +1,4 @@
 dispositivo,nome_planta,data_inicio,data_fim
 esp32_c3_supermini,Aloe Vera,2026-04-08 17:00:00,2026-04-10 14:09:00
-esp32_c3_supermini,Suculenta,2026-04-10 14:10:00,2099-12-31 23:59:59
+esp32_c3_supermini,Suculenta,2026-04-10 14:10:00,2026-04-12 14:50:00
+esp32_c3_supermini,Suculenta,2026-04-12 14:51:00,2099-12-31 23:59:59

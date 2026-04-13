@@ -13,6 +13,24 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 
 ---
 
+### 🔄 Manual de Operação: Troca de Plantas e Novos Dispositivos
+
+Como o projeto utiliza a arquitetura **SCD Tipo 2**, a gestão de sensores e vasos é feita diretamente no arquivo `seeds/cadastro_sensores.csv`. 
+
+#### 1. Sincronização Obrigatória (Hardware x Banco)
+⚠️ **Atenção:** O nome definido na coluna `dispositivo` (ex: `esp32_c3_supermini`) deve ser **idêntico** à string de identificação enviada pelo código no `main.py`. Atualmente, essa identificação é feita diretamente no payload JSON do hardware. Caso os nomes não coincidam exatamente (incluindo letras maiúsculas e minúsculas), os dados serão carregados na Camada Bronze mas aparecerão como "Planta Desconhecida" no Power BI.
+
+#### 2. Como Registrar uma Troca de Planta
+Sempre que o sensor for movido para um novo vaso:
+- **Encerrar o ciclo atual:** No CSV, localize a linha do dispositivo e altere a `data_fim` para o momento exato da troca (ex: `2026-04-09 00:40:00`).
+- **Iniciar o novo ciclo:** Adicione uma nova linha com o mesmo nome de `dispositivo`, o nome da nova planta, e a `data_inicio` sendo 1 segundo após o fim da anterior. Defina a `data_fim` para `2099-12-31 23:59:59`.
+
+#### 3. Como Adicionar um Novo Sensor
+Para escalar o projeto com novos ESP32:
+- Adicione uma linha inédita no CSV com o novo identificador do dispositivo.
+- Certifique-se de que o novo hardware esteja programado para enviar esse exato identificador no seu código principal. Para tal basta alterar a variável global `ID_DO_SENSOR` no arquivo `main.py`. A arquitetura SCD2 (Slowly Changing Dimension) detectará a mudança de vínculo e iniciará um novo histórico automaticamente, preservando os dados da planta anterior sem necessidade de intervenção manual no banco de dados.
+- Execute o comando `dbt build` para atualizar as tabelas de roteamento.
+
 ## 🏗️ Arquitetura e Engenharia de Dados (ELT)
 
 1. **Hardware (Edge Computing & Segurança):** ESP32-C3 SuperMini programado em MicroPython. Implementa cofre de senhas (`secrets.py`) para isolamento de credenciais e utiliza um Display OLED (SSD1306) via I2C para observabilidade e telemetria física em tempo real.
@@ -33,24 +51,6 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 
     * **Filtro Universal de Dispositivos:** O dashboard utiliza o identificador único (Hardware + Planta + Data) para garantir que o usuário nunca visualize dados sobrepostos de duas culturas diferentes no mesmo gráfico.
 
-### 🔄 Manual de Operação: Troca de Plantas e Novos Dispositivos
-
-Como o projeto utiliza a arquitetura **SCD Tipo 2**, a gestão de sensores e vasos é feita diretamente no arquivo `seeds/cadastro_sensores.csv`. 
-
-#### 1. Sincronização Obrigatória (Hardware x Banco)
-⚠️ **Atenção:** O nome definido na coluna `dispositivo` (ex: `esp32_c3_supermini`) deve ser **idêntico** à string de identificação enviada pelo código no `main.py`. Atualmente, essa identificação é feita diretamente no payload JSON do hardware. Caso os nomes não coincidam exatamente (incluindo letras maiúsculas e minúsculas), os dados serão carregados na Camada Bronze mas aparecerão como "Planta Desconhecida" no Power BI.
-
-#### 2. Como Registrar uma Troca de Planta
-Sempre que o sensor for movido para um novo vaso:
-- **Encerrar o ciclo atual:** No CSV, localize a linha do dispositivo e altere a `data_fim` para o momento exato da troca (ex: `2026-04-09 00:40:00`).
-- **Iniciar o novo ciclo:** Adicione uma nova linha com o mesmo nome de `dispositivo`, o nome da nova planta, e a `data_inicio` sendo 1 segundo após o fim da anterior. Defina a `data_fim` para `2099-12-31 23:59:59`.
-
-#### 3. Como Adicionar um Novo Sensor
-Para escalar o projeto com novos ESP32:
-- Adicione uma linha inédita no CSV com o novo identificador do dispositivo.
-- Certifique-se de que o novo hardware esteja programado para enviar esse exato identificador no seu código principal. Para tal basta alterar a variável global `ID_DO_SENSOR` no arquivo `main.py`. A arquitetura SCD2 (Slowly Changing Dimension) detectará a mudança de vínculo e iniciará um novo histórico automaticamente, preservando os dados da planta anterior sem necessidade de intervenção manual no banco de dados.
-- Execute o comando `dbt build` para atualizar as tabelas de roteamento.
-
 ## 📁 Estrutura do Projeto
 * `/main.py`: O código principal de produção otimizado para a placa.
 * `/ingestao_perenual.py`: Script de extração responsável por buscar os metadados das plantas na API.
@@ -67,19 +67,28 @@ Para rodar as transformações locais e gerar a documentação da Camada Gold, �
 
 Alguns dos sensores retornam valores brutos. Para gerar métricas amigáveis e *insights* acionáveis, aplicamos as seguintes transformações:
 
-1. **Umidade do Solo (Calibração Agronômica vs. Hobbyista):** Durante a fase de testes (PoC), foi identificado que a calibração padrão de mercado para sensores capacitivos *low-cost* (utilizando um copo de água pura como sendo 100% de umidade) "esmaga" a escala de leitura. Como a água pura possui uma constante dielétrica muito maior que a terra, e o sensor possui um raio de leitura local (visão de túnel de ~2 a 3 cm), a umidade real da planta raramente passava dos 30% no painel.
+1. **Umidade do Solo: O Abismo entre IoT e Agronomia (VWC vs. Tensão)**
+  Durante o desenvolvimento, foi identificado um grave "Impedance Mismatch" entre as recomendações de fábrica do hardware e a biologia real da planta. O sensor não mede "água" diretamente, mas sim a **Constante Dielétrica ($\kappa$)** do meio.
 
-   * **Pivot de Engenharia:** Para refletir a biologia real da planta, o sistema foi recalibrado utilizando o método de **Capacidade de Campo** (Ponto de Saturação Máxima da terra). 
+    * **O Chão Absoluto (Ar = 0%):** O ar possui $\kappa \approx 1$ e os minerais secos do solo possuem um $\kappa$ muito baixo (entre 3 e 5). Como a terra esturricada é basicamente uma mistura de ar e minerais, a sua constante dielétrica resultante é insignificante se comparada à da água ($\kappa \approx 80$). Por isso, cravamos a calibração de **3050 ADC (Ar)** como o nosso "zero absoluto" (solo hidrofóbico e estresse hídrico total). É uma referência universal imutável.
+   
+    * **A Ilusão da Água Pura (O Teto Relativo):** A água pura possui uma constante elétrica altíssima ($\kappa \approx 80$). A calibração padrão de mercado (água pura = 100%) "esmaga" a escala de leitura. Na escala científica VWC (*Conteúdo Volumétrico de Água*), a terra atinge saturação máxima ("lama") com cerca de 45% de volume de água (que possui um $\kappa$ muito menor que a água pura). Calibrar o limite na água pura tornava metade da capacidade analítica do gráfico inútil.
+   
+    * **Volume vs. Força (O Ponto Cego do Sensor):** Artigos de agricultura profissional alertam que sensores capacitivos medem apenas o *Volume* de água. No entanto, a planta sobrevive baseada no *Potencial Matricial* (a força necessária para sugar a água do solo). Por exemplo, 30% de água numa terra arenosa é fácil de absorver, mas 30% de água numa argila densa mata a planta de sede, pois a argila "prende" as moléculas de água. O nosso hardware IoT de baixo custo não tem capacidade física para ler essa força.
+   
+    * **O Pivot de Engenharia (A Calibração na Lama):** Para mitigar essas limitações físicas sem encarecer o projeto com tensiômetros e sensores profissionais, descartamos a calibração na água e calibramos o sensor na lama do **próprio substrato**. Isso converteu a leitura para uma **Escala Relativa Otimizada** (onde 100% = saturação máxima daquele solo específico), garantindo gráficos de alta resolução. Assim, a regra de três invertida na Camada Gold ficou travada em:
 
-   * Os valores brutos de voltagem (ADC) são convertidos em percentagem (0-100%) através de interpolação linear (Regra de Três Inversa) fixada nos seguintes limites na Camada Gold:
-     * `3050` = 0% de Umidade (Sensor no ar / Solo esturricado)
-     * `1420` = 100% de Umidade (Terra em saturação máxima / "Lama")
-  
-    * **Desafio Físico de IoT (Lençol Freático Suspenso):** Durante os testes em vasos de pequeno porte (Suculentas), foram detectadas anomalias onde o banco de dados reportava 100% de saturação (risco de podridão) enquanto a superfície da terra apresentava umidade ideal. 
+      * `3050` ADC = 0% de Umidade (Sensor no ar / Solo esturricado)
+      * `1420` ADC = 100% de Umidade (Terra em saturação máxima / Lama)
 
-      * Troubleshooting e Solução: A investigação física baseada em literatura agronômica revelou o fenômeno de *Perched Water Table* (Lençol Freático Suspenso), onde a gravidade não vence a capilaridade da terra em vasos rasos, criando uma camada perene de saturação no fundo do vaso. 
+    * ⚠️ **Aviso Crítico de Manutenção (Física do Raio de Influência):**
+     O sensor lê a umidade num raio de apenas ~2 a 3 cm ao redor da sua placa. Devido a esta física:
 
-      * Decisão Arquitetural: Em vez de realizar um *hardcoding* de calibração no SQL (o que prejudicaria a escalabilidade do código para vasos maiores), a solução adotada foi o **Ajuste de Posicionamento Físico (Z-Axis)** do hardware. O sensor foi recuado para a "zona das raízes", fugindo da saturação do fundo e normalizando os dados no Power BI sem adicionar dívida técnica ao dbt.
+      - **O tamanho do vaso é irrelevante:** A calibração de limites feita num copo de 200ml funcionará perfeitamente num vaso de 50 litros.
+
+      - **O TIPO de terra é crucial:** Como a calibração está atrelada à condutividade elétrica de um substrato específico, se você mudar a planta para uma terra com composição radicalmente diferente (ex: rica em areia vs. rica em argila), **é estritamente recomendável recalibrar o limite de 100% com a nova terra**.
+
+      - **Fenômeno do Lençol Freático Suspenso:** Em vasos rasos, a gravidade não vence a capilaridade da terra. O sensor deve ser posicionado estrategicamente no eixo-Z (zona das raízes), fugindo do fundo do vaso para evitar leituras falsas de saturação extrema.
 
 2. **Conversão de Luminosidade (Lux para PPFD/PAR):** O hardware capta a intensidade da luz em *Lux*, uma métrica focada na percepção visual humana. No entanto, as regras de negócio agronômicas exigem a medição da Radiação Fotossinteticamente Ativa (PAR), medida em PPFD (µmol/m²/s). 
 
