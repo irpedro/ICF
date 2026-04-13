@@ -120,7 +120,7 @@ O fluxo é ativado a cada 6 horas e consome diretamente a Camada Gold do dbt (Su
 
 ## 🚀 Visão de Futuro e Escalabilidade
 
-O projeto foi desenhado seguindo princípios de arquitetura modular, permitindo a sua evolução de uma ferramenta de monitorização pessoal para uma plataforma escalável (SaaS). As próximas etapas de desenvolvimento focam-se em:
+O projeto foi desenhado seguindo princípios de arquitetura modular, permitindo a sua evolução de uma ferramenta de monitorização pessoal para uma plataforma escalável (SaaS). Caso a implementação, as próximas etapas de desenvolvimento seriam:
 
 ### 1. Desacoplamento e Multi-tenancy
 Atualmente, as notificações estão configuradas para um utilizador administrativo. A evolução prevê a criação de uma camada de gestão de utilizadores no PostgreSQL, onde cada sensor é vinculado a um `id_utilizador`. 
@@ -155,8 +155,8 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - [x] **Automação e Orquestração (Make.com):** Multiplexador de rotas com sistema de *Cooldown* para alertas críticos (solo seco) e relatórios diários via Telegram Bot.
 - [x] **Deploy Físico (MVP):** Instalação do hardware em ambiente real (Aloe Vera).
 - [x] **Evolução de Arquitetura (SCD2):** Ajuste de contrato no `schema.yml` para habilitar a rastreabilidade temporal dos sensores sem quebrar compilações.
-- [ ] **Reset da Camada Bronze:** Limpeza dos dados de laboratório (Truncate) via SQL para início do log histórico oficial de produção.
+- [x] **Reset da Camada Bronze:** Limpeza dos dados de laboratório (Truncate) via SQL para início do log histórico oficial de produção.
 - [x] **Refatoração de Código (Hardware):** Implementar variável global `ID_DO_SENSOR` no `main.py` para facilitar a escalabilidade de novos dispositivos.
-- [ ] **Política de Retenção de Dados:** Implementar rotina no Supabase (via *pg_cron* ou Trigger) para deletar logs da tabela `leituras_brutas_bronze` mais velhos que 3 meses, otimizando o armazenamento.
 - [x] **Teste de Estresse Botânico:** Executar a troca temporal (SCD2) para suculenta no intuito de forçar o disparo de alertas no Telegram.
 - [x] **Documentação Visual e Vídeo:** Criar diretório `/docs/images` e produzir o vídeo demonstrativo do "Produto de Dados".
+- [Descartado] **Política de Retenção de Dados:** Implementar rotina no Supabase (via *pg_cron* ou Trigger) para deletar logs da tabela `leituras_brutas_bronze` mais velhos que 3 meses, otimizando o armazenamento.
