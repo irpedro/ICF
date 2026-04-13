@@ -76,6 +76,10 @@ models:
           Calculada a partir da luz_raw usando o fator de conversão 0.0185, representando a luz real que a planta utiliza para fotossíntese.
         tests:
           - not_null
+      - name: identificador_planta
+        description: "Chave única global que une o hardware, a planta e a data de plantio. Utilizada como Tabela Dimensão (Filtro Mestre) no Power BI para propagação em modelo Star Schema."
+        tests:
+          - not_null
 
   # --- 2. TABELA FATO AGREGADA (RESUMO DIÁRIO E DLI) ---
   - name: gold_diaria_monitorizacao
@@ -115,5 +119,9 @@ models:
           - not_null
       - name: umidade_solo_media_pct
         description: "Umidade média do solo no dia, calculada a partir das leituras capacitivas."
+        tests:
+          - not_null
+      - name: identificador_planta
+        description: "Chave única global que une o hardware, a planta e a data de plantio. Utilizada como Tabela Dimensão (Filtro Mestre) no Power BI para propagação em modelo Star Schema."
         tests:
           - not_null

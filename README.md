@@ -20,11 +20,18 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
 3. **Eficiência Energética:** Utiliza `machine.deepsleep()` para economizar bateria entre os ciclos de leitura.
 4. **Extração e Carregamento (E e L):** Envio direto do hardware para a Camada Bronze do Supabase via HTTP POST, armazenando o payload bruto em uma coluna `JSONB`. Scripts em Python funcionam como via de contingência para APIs externas.
 5. **Transformação via dbt (T):** O Data Build Tool atua diretamente dentro do Data Lake operando nas camadas seguintes:
+   
    * **Camada Silver:** View (`vw_leituras_silver`) responsável por descompactar o JSON, converter os tipos, ajustar o fuso horário e aplicar políticas de segurança.
+
    * **Camada Gold (Calibração & Agregação):** Dividida em Fato Granulada (Aplica regra de três invertida travada para calibrar o sensor de solo de ADC para % e cruza com limites biológicos) e Fato Agregada (Resumo diário focando no cálculo de DLI - Daily Light Integral).
+   
 6. **Rastreabilidade Histórica (SCD Tipo 2):** A modelagem utiliza *Slowly Changing Dimensions* do Tipo 2 para garantir que o histórico passado permaneça imutável em caso de troca física de plantas no mesmo hardware.
 7. **Orquestração e Alertas (Make.com):** Multiplexador na nuvem que consome o banco de dados e alimenta um Bot no Telegram. Conta com envio de Alertas Críticos (solo seco com sistema de *cooldown*) e um Menu Interativo para solicitação de relatórios de saúde sob demanda.
 8. **Visualização Automática (Power BI):** Dashboard interativo conectado diretamente ao Supabase via Pooler de conexões. Configurado com rotinas de *Scheduled Refresh* (Atualização Agendada) no Power BI Service para garantir dados sempre atualizados múltiplas vezes ao dia.
+  
+    * **Star Schema & Bridge Table:** Implementação de uma tabela de dimensão única (`Dim_Filtro_Plantas`) gerada via DAX. Essa "Tabela Ponte" atua como o comando central do dashboard, permitindo que um único seletor filtre simultaneamente tabelas de diferentes granularidades (leituras minuto a minuto vs. agregados diários).
+
+    * **Filtro Universal de Dispositivos:** O dashboard utiliza o identificador único (Hardware + Planta + Data) para garantir que o usuário nunca visualize dados sobrepostos de duas culturas diferentes no mesmo gráfico.
 
 ### 🔄 Manual de Operação: Troca de Plantas e Novos Dispositivos
 
@@ -41,7 +48,7 @@ Sempre que o sensor for movido para um novo vaso:
 #### 3. Como Adicionar um Novo Sensor
 Para escalar o projeto com novos ESP32:
 - Adicione uma linha inédita no CSV com o novo identificador do dispositivo.
-- Certifique-se de que o novo hardware esteja programado para enviar esse exato identificador no seu código principal.
+- Certifique-se de que o novo hardware esteja programado para enviar esse exato identificador no seu código principal. Para tal basta alterar a variável global `ID_DO_SENSOR` no arquivo `main.py`. A arquitetura SCD2 (Slowly Changing Dimension) detectará a mudança de vínculo e iniciará um novo histórico automaticamente, preservando os dados da planta anterior sem necessidade de intervenção manual no banco de dados.
 - Execute o comando `dbt build` para atualizar as tabelas de roteamento.
 
 ## 📁 Estrutura do Projeto
@@ -131,6 +138,8 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - [x] **Construção do Dashboard:** Visualizações de tempo real (Página 1) e gráficos de acompanhamento agregado (Página 2, 3 e 4) conectadas ao modelo semântico local.
 - [x] **Refinamento de UI/UX:** Dark Mode aplicado, com métricas complexas transformadas em Cartões KPI dinâmicos e Tooltips.
 - [x] **Deploy:** Publicação do painel interativo diretamente no GitHub (Web Embed).
+- [x] **Modelagem Star Schema Avançada:** Criação de Tabela Dimensão (Bridge Table) via DAX (`DISTINCT`) e relacionamentos unidirecionais `1:*` para orquestrar o filtro de *Slowly Changing Dimensions* (SCD Tipo 2). Isso garante o isolamento perfeito do histórico de sensores e botânica, impedindo vazamento de dados entre plantas diferentes que usaram o mesmo hardware.
+- [x] **Integração Dinâmica via API:** Customização avançada em linguagem M (Power Query) no Editor Avançado para forçar a ingestão e tipagem em tempo real de novas colunas criadas dinamicamente no Supabase.
 
 **Frente 3: Edge Computing, Orquestração e Entrega**
 - [x] **Segurança e Observabilidade na Borda:** Separação de credenciais em `secrets.py` e programação de Display OLED (SSD1306) via I2C para telemetria e debug físico em tempo real.
@@ -138,7 +147,7 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - [x] **Deploy Físico (MVP):** Instalação do hardware em ambiente real (Aloe Vera).
 - [x] **Evolução de Arquitetura (SCD2):** Ajuste de contrato no `schema.yml` para habilitar a rastreabilidade temporal dos sensores sem quebrar compilações.
 - [ ] **Reset da Camada Bronze:** Limpeza dos dados de laboratório (Truncate) via SQL para início do log histórico oficial de produção.
-- [ ] **Refatoração de Código (Hardware):** Implementar variável global `ID_DO_SENSOR` no `main.py` para facilitar a escalabilidade de novos dispositivos.
+- [x] **Refatoração de Código (Hardware):** Implementar variável global `ID_DO_SENSOR` no `main.py` para facilitar a escalabilidade de novos dispositivos.
 - [ ] **Política de Retenção de Dados:** Implementar rotina no Supabase (via *pg_cron* ou Trigger) para deletar logs da tabela `leituras_brutas_bronze` mais velhos que 3 meses, otimizando o armazenamento.
-- [ ] **Teste de Estresse Botânico:** Executar a troca temporal (SCD2) para Samambaia no intuito de forçar o disparo de alertas no Telegram.
-- [ ] **Documentação Visual e Vídeo:** Criar diretório `/docs/images` e produzir o vídeo demonstrativo do "Produto de Dados" para as cadeiras de SI e Gestão Ambiental.
+- [x] **Teste de Estresse Botânico:** Executar a troca temporal (SCD2) para suculenta no intuito de forçar o disparo de alertas no Telegram.
+- [x] **Documentação Visual e Vídeo:** Criar diretório `/docs/images` e produzir o vídeo demonstrativo do "Produto de Dados".

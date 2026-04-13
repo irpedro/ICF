@@ -16,7 +16,8 @@ WITH leituras_com_lag AS (
         p.horas_luz_minimas,
         p.horas_descanso_minimas,
         ((3050 - l.umidade_solo_raw) / (3050 - 1420.0)) * 100 AS umidade_solo_pct,
-        
+        c.dispositivo || ' | ' || c.nome_planta || ' (' || TO_CHAR(c.data_inicio, 'DD/MM/YYYY') || ')' AS identificador_planta,
+
         -- Calcula o intervalo bruto em minutos desde a última leitura
         EXTRACT(EPOCH FROM (l.data_leitura_sp - LAG(l.data_leitura_sp) OVER (PARTITION BY DATE(l.data_leitura_sp), l.dispositivo ORDER BY l.data_leitura_sp))) / 60.0 AS delta_minutos
 
@@ -47,6 +48,7 @@ agregacao_diaria AS (
     SELECT 
         data_ref,
         dispositivo,
+        identificador_planta,
         AVG(temperatura_c) AS temp_media,
         AVG(umidade_ar_pct) AS umid_media,
         AVG(luz_par_ppfd) AS par_ppfd_medio,
@@ -61,13 +63,14 @@ agregacao_diaria AS (
         MAX(horas_luz_minimas) AS meta_luz,
         MAX(horas_descanso_minimas) AS meta_descanso
     FROM leituras_enriquecidas
-    GROUP BY data_ref, dispositivo
+    GROUP BY data_ref, dispositivo, identificador_planta
 )
 
 -- Na tabela final, calculamos a taxa de cobertura dos dados e aplicamos as regras de alerta para saúde luminosa
 SELECT 
     data_ref,
     dispositivo,
+    identificador_planta,
     ROUND(temp_media, 1) AS temperatura_media_c,
     ROUND(umid_media, 1) AS umidade_media_pct,
     ROUND(par_ppfd_medio, 2) AS par_ppfd_medio,

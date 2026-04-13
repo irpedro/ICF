@@ -1,10 +1,17 @@
-import dht          # <-- Faltava ele! A biblioteca do sensor de temperatura/umidade
+import dht
 import machine
 import time
 import network
 import urequests
 import ssd1306
-import secrets      # <-- O seu cofre de senhas novo
+import secrets      # <-- O seu cofre de senhas
+
+# ==========================================
+# ⚙️ CONFIGURAÇÃO DO DISPOSITIVO
+# ==========================================
+# Altere para o nome exato que está no seu CSV
+DEVICE_ID = "esp32_c3_supermini" 
+# ==========================================
 
 # --- CREDENCIAIS ---
 SUPABASE_URL_COMPLETA = f"{secrets.SUPABASE_URL}/rest/v1/leituras_brutas_bronze"
@@ -89,7 +96,7 @@ try:
         
         # 2. Prepara o pacote
         payload = {
-            "arquivo_origem": "esp32_c3_supermini",
+            "arquivo_origem": DEVICE_ID,
             "dados_json": {
                 "temperature_c": temp_atual,
                 "humidity_pct": umid_atual,

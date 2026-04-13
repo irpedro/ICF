@@ -34,3 +34,16 @@ Fundamentação teórica para as transformações em SQL (dbt) e rastreabilidade
 * **Arquitetura Medalhão (Bronze/Silver/Gold):** DATABRICKS. *What is a Medallion Architecture?* Padrão da indústria para organização lógica e qualidade em Data Lakes.
 
 * **Slowly Changing Dimensions (SCD Tipo 2):** KIMBALL, Ralph; ROSS, Margy. **The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling**. 3. ed. Wiley, 2013. *(Fundamentação para a rastreabilidade histórica das trocas de vasos no dbt).*
+
+## 6. Física de Fluidos em Substratos e Inserção de Hardware (IoT)
+Fundamentação teórica para o diagnóstico e solução do "Lençol Freático Suspenso" e melhores práticas de *placement* de sensores capacitivos para evitar falsos positivos de saturação.
+
+* **Fenômeno Físico (Perched Water Table):** * [Container Soils are Different (Oregon State University Extension)](https://agsci.oregonstate.edu/sites/agscid7/files/horticulture/osu-nursery-greenhouse-and-christmas-trees/onn010809.pdf) - Estudo demonstrando que a tensão capilar impede a drenagem completa da gravidade, formando uma zona permanente de saturação nos últimos centímetros do fundo de recipientes.
+
+  * [Gardening in Raised Beds and Containers (South Dakota State University Extension)](https://extension.sdstate.edu/sites/default/files/2024-07/P-00301.pdf) - Confirma a criação inevitável da "zona anaeróbica" no fundo de vasos pequenos.
+
+* **Boas Práticas de Hardware (Eixo Z e Inserção Diagonal):** * [Capacitive Soil Moisture Calibration with Arduino (Maker Portal)](https://makersportal.com/blog/2020/5/26/capacitive-soil-moisture-calibration-with-arduino) - Guia definitivo sobre como o ar e a densidade da terra afetam o sensor v1.2.
+
+  * [Why most Arduino Soil Moisture Sensors suck (Andreas Spiess / YouTube)](https://www.youtube.com/watch?v=udmJyncDvw0) - Referência clássica na comunidade Maker de IoT demonstrando que a inserção diagonal/oblíqua do hardware é obrigatória para evitar "canais de água" (*Water Channeling*), onde a água da rega escorre direto pelo corpo da placa enganando a leitura.
+
+  * [Reverse Engineering the Capacitive Soil Moisture Sensor (YouTube)](https://www.youtube.com/watch?v=IGP38bz-K48) - Análise profunda e denúncia de defeitos de fabricação em lotes paralelos, especificamente a substituição do chip TLC555 pelo NE555 e a ausência de vias de aterramento (resistor de 1MΩ). O estudo justifica as anomalias elétricas e a compressão da escala de leitura ao operar o sensor em microcontroladores de 3.3V (como o ESP32).
