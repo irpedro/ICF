@@ -43,7 +43,7 @@ Para rodar as transformações locais e gerar a documentação da Camada Gold, �
 
 ### 2.2 Conexão do dbt (`profiles.yml`)
 
-Diferente do hardware, o dbt (no seu computador) precisa de um arquivo de configuração para acessar o banco. Ao rodar ele pela primeira vez ele deve fazer diversas perguntas paracriar o arquivo `profiles.yml` com os dados do seu banco Supabase (Host, User, Password, Porta 6543). Sem isso, os comandos de terminal não funcionarão. Você também pode criar ou modificar esse arquivo (caso em dúvida pesquise para mais detalhes).
+Diferente do hardware, o dbt (no seu computador) precisa de um arquivo de configuração para acessar o banco. Ao rodar ele pela primeira vez ele deve fazer diversas perguntas para criar o arquivo `profiles.yml` com os dados do seu banco Supabase (Host, User, Password, Porta 6543). Sem isso, os comandos de terminal não funcionarão. Você também pode criar ou modificar esse arquivo no seu computador (caso em dúvida pesquise sobre configuração do dbt para mais detalhes).
 
 ### 2.3 Configuração da Tabela Bronze (Supabase)
 
