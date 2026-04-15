@@ -3,7 +3,7 @@
 Este projeto foi construído do zero absoluto e exigiu o aprendizado, a seleção e a integração de tecnologias que cruzam quase todas as áreas da Engenharia de Computação e Dados. Abaixo estão registrados os maiores desafios enfrentados, os "becos sem saída" e as decisões arquiteturais tomadas para superá-los. 
 
 ## 1. Business Intelligence e Analytics (O "Boss Final" do Power BI)
-* **A Batalha do SSL (AWS vs. Microsoft):** Este foi sem dúvida o maior obstáculo técnico do projeto. A conexão direta entre o Power BI Service (Nuvem) e o banco PostgreSQL no Supabase (hospedado na AWS) falhava por problemas de certificação e criptografia. Tivemos que recuar para o Power BI Desktop, reconfigurar toda a cadeia de conexão no Editor Avançado (Power Query) forçando os parâmetros de criptografia e conectando via API so Supabase. Tudo para apenas conseguir publicar o dashboard na nuvem de forma acessível para outros usuários.
+* **A Batalha do SSL (AWS vs. Microsoft):** Este foi sem dúvida o maior obstáculo técnico do projeto. A conexão direta entre o Power BI Service (Nuvem) e o banco PostgreSQL no Supabase (hospedado na AWS) falhava por problemas de certificação e criptografia. Tivemos que recuar para o Power BI Desktop, reconfigurar toda a cadeia de conexão no Editor Avançado (Power Query) forçando os parâmetros de criptografia via API so Supabase. Tudo para apenas conseguir publicar o dashboard na nuvem de forma acessível para outros usuários.
 
 * **Performance e DAX Dinâmico:** A Microsoft limita severamente o poder de processamento de dashboards em contas gratuitas/padrão. Para otimizar, criamos colunas DAX focadas em filtros. Porém, durante a homologação, descobrimos que esses filtros não operavam de forma dinâmica quando o usuário trocava de planta no seletor. Isso nos obrigou a refatorar as medidas DAX para garantir que o contexto de filtro respeitasse o ciclo de vida (SCD2) de cada vaso individualmente.
 
@@ -52,7 +52,7 @@ Este projeto foi construído do zero absoluto e exigiu o aprendizado, a seleçã
 
 * **As Limitações do Make.com:** A versão gratuita do Make provou-se altamente restritiva. Tivemos dificuldade na configuração visual e fomos forçados a refatorar o fluxo para fundir todos os tipos de alerta em um único caminho (*blueprint*) para não estourar a cota de execuções.
 
-* **Qualidade Automatizada:** Tivemos o zelo de documentar todos os testes de qualidade, de chave primária e chaves estrangeiras no arquivo `schema.yml` do dbt, juntamente a documeção automática do dbt, amarrando isso em uma esteira de CI/CD no **GitHub Actions** para rodar na nuvem.
+* **Qualidade Automatizada:** Tivemos o zelo de documentar todos os testes de qualidade, de chave primária e chaves estrangeiras no arquivo `schema.yml` do dbt, juntamente a documentação automática do dbt, amarrando isso em uma esteira de CI/CD no **GitHub Actions** para rodar na nuvem.
 
 * **A Formatação do Payload HTTP:** O envio do JSON do MicroPython para a API REST do Supabase gerou erros de `Bad Request` (400) no início. Tivemos que alinhar a formatação correta de dicionários no Python com a estrutura exigida pela coluna `JSONB` do PostgreSQL.
 

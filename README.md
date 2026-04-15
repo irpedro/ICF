@@ -11,32 +11,22 @@ Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do c
   <img src="dashboard_preview.png" alt="Preview do Dashboard Interativo" width="100%">
 </a>
 
----
+## 🛠️ Guia de Uso e Reprodução
 
-### 🔄 Manual de Operação: Troca de Plantas e Novos Dispositivos
+Para instruções detalhadas sobre o uso do projeto, juntamente a montagem do hardware, configuração do ambiente dbt (profiles), criação das tabelas no Supabase e o manual de operação para troca de plantas, acesse o documento completo:
 
-Como o projeto utiliza a arquitetura **SCD Tipo 2**, a gestão de sensores e vasos é feita diretamente no arquivo `seeds/cadastro_sensores.csv`. 
-
-#### 1. Sincronização Obrigatória (Hardware x Banco)
-⚠️ **Atenção:** O nome definido na coluna `dispositivo` (ex: `esp32_c3_supermini`) deve ser **idêntico** à string de identificação enviada pelo código no `main.py`. Atualmente, essa identificação é feita diretamente no payload JSON do hardware. Caso os nomes não coincidam exatamente (incluindo letras maiúsculas e minúsculas), os dados serão carregados na Camada Bronze mas aparecerão como "Planta Desconhecida" no Power BI.
-
-#### 2. Como Registrar uma Troca de Planta
-Sempre que o sensor for movido para um novo vaso:
-- **Encerrar o ciclo atual:** No CSV, localize a linha do dispositivo e altere a `data_fim` para o momento exato da troca (ex: `2026-04-09 00:40:00`).
-- **Iniciar o novo ciclo:** Adicione uma nova linha com o mesmo nome de `dispositivo`, o nome da nova planta, e a `data_inicio` sendo 1 segundo após o fim da anterior. Defina a `data_fim` para `2099-12-31 23:59:59`.
-
-#### 3. Como Adicionar um Novo Sensor
-Para escalar o projeto com novos ESP32:
-- Adicione uma linha inédita no CSV com o novo identificador do dispositivo.
-- Certifique-se de que o novo hardware esteja programado para enviar esse exato identificador no seu código principal. Para tal basta alterar a variável global `ID_DO_SENSOR` no arquivo `main.py`. A arquitetura SCD2 (Slowly Changing Dimension) detectará a mudança de vínculo e iniciará um novo histórico automaticamente, preservando os dados da planta anterior sem necessidade de intervenção manual no banco de dados.
-- Execute o comando `dbt build` para atualizar as tabelas de roteamento.
+👉 **[Manual de Uso e Configuração](./docs/manual_de_uso.md)**
 
 ## 🏗️ Arquitetura e Engenharia de Dados (ELT)
 
 1. **Hardware (Edge Computing & Segurança):** ESP32-C3 SuperMini programado em MicroPython. Implementa cofre de senhas (`secrets.py`) para isolamento de credenciais e utiliza um Display OLED (SSD1306) via I2C para observabilidade e telemetria física em tempo real.
+
 2. **Sensores:** DHT22 (Temperatura/Umidade do Ar), Sensor de Umidade do Solo Analógico e Sensor de Luz Digital (BH1750 via I2C).
+
 3. **Eficiência Energética:** Utiliza `machine.deepsleep()` para economizar bateria entre os ciclos de leitura.
+
 4. **Extração e Carregamento (E e L):** Envio direto do hardware para a Camada Bronze do Supabase via HTTP POST, armazenando o payload bruto em uma coluna `JSONB`. Scripts em Python funcionam como via de contingência para APIs externas.
+
 5. **Transformação via dbt (T):** O Data Build Tool atua diretamente dentro do Data Lake operando nas camadas seguintes:
    
    * **Camada Silver:** View (`vw_leituras_silver`) responsável por descompactar o JSON, converter os tipos, ajustar o fuso horário e aplicar políticas de segurança.
@@ -44,7 +34,9 @@ Para escalar o projeto com novos ESP32:
    * **Camada Gold (Calibração & Agregação):** Dividida em Fato Granulada (Aplica regra de três invertida travada para calibrar o sensor de solo de ADC para % e cruza com limites biológicos) e Fato Agregada (Resumo diário focando no cálculo de DLI - Daily Light Integral).
    
 6. **Rastreabilidade Histórica (SCD Tipo 2):** A modelagem utiliza *Slowly Changing Dimensions* do Tipo 2 para garantir que o histórico passado permaneça imutável em caso de troca física de plantas no mesmo hardware.
+
 7. **Orquestração e Alertas (Make.com):** Multiplexador na nuvem que consome o banco de dados e alimenta um Bot no Telegram. Conta com envio de Alertas Críticos (solo seco com sistema de *cooldown*) e um Menu Interativo para solicitação de relatórios de saúde sob demanda.
+
 8. **Visualização Automática (Power BI):** Dashboard interativo conectado diretamente ao Supabase via Pooler de conexões. Configurado com rotinas de *Scheduled Refresh* (Atualização Agendada) no Power BI Service para garantir dados sempre atualizados múltiplas vezes ao dia.
   
     * **Star Schema & Bridge Table:** Implementação de uma tabela de dimensão única (`Dim_Filtro_Plantas`) gerada via DAX. Essa "Tabela Ponte" atua como o comando central do dashboard, permitindo que um único seletor filtre simultaneamente tabelas de diferentes granularidades (leituras minuto a minuto vs. agregados diários).
@@ -53,15 +45,35 @@ Para escalar o projeto com novos ESP32:
 
 ## 📁 Estrutura do Projeto
 * `/main.py`: O código principal de produção otimizado para a placa.
-* `/ingestao_perenual.py`: Script de extração responsável por buscar os metadados das plantas na API.
-* `/plant_sensor_dbt/`: Repositório de transformação de dados contendo as models em SQL (Silver/Gold) e o dicionário de dados (Seeds).
+
+* `/ingestao_perenual.py` e `/plantas.json`: Script de extração responsável por buscar os metadados **RESERVAS** de plantas pela API do Perenual.
+
+* `/plant_sensor_dbt/`: Repositório de transformação de dados contendo as models em SQL (Silver/Gold) e o dicionário de dados **PRINCIPAL** (Seeds).
+
 * `/poc/`: Provas de conceito e testes isolados de hardware.
 
-## 🛠️ Pré-requisitos de Desenvolvimento (dbt)
-Para rodar as transformações locais e gerar a documentação da Camada Gold, é recomendado o uso de um ambiente virtual (`venv`) para evitar conflitos de dependência.
-* **Python:** Versão `3.11.x` (64-bits)
-* **dbt-core:** `v1.11.7`
-* **dbt-postgres:** `v1.10.0`
+* `/assets/`: Documentação visual do projeto.
+
+* `/docs/`: Arquivos de bibliografia e de lições aprendidas do projeto.
+
+* `/secrets_example.py`: Arquivo de configurações das APIs do projeto (necessário renomear para somente `secrets.py`).
+
+## 🧪 Qualidade de Dados e Governança (dbt)
+> ⚙️ **CI/CD Integrado:** Toda a esteira de governança deste projeto roda de forma automatizada na nuvem através do **GitHub Actions**.
+
+* **Testes Automatizados (dbt test):** Validação rigorosa de integridade dos dados (chaves primárias, valores nulos e integridade referencial) configurada nos contratos do `schema.yml` para garantir que nenhuma anomalia quebre o painel.
+
+* **Documentação e Linhagem (DAG):** Dicionário de dados mapeado desde a origem (Bronze) até ao produto final (Gold). 
+
+  * 🔗 **[Clique aqui para acessar o Dicionário de Dados Interativo (dbt docs)](https://irpedro.github.io/ICF/)** (Gerado e hospedado automaticamente pela esteira do GitHub Actions).
+
+## 📚 Documentação Adicional e Artigos
+
+O sucesso técnico deste projeto exigiu profunda pesquisa em agronomia e resolução de bugs complexos. Para entender os "porquês" das decisões arquiteturais, consulte os documentos abaixo:
+
+* [**Diário de Bordo e Lições Aprendidas**](./docs/licoes_aprendidas.md): Um "Post-Mortem" detalhado com todos os bugs de hardware, problemas de fuso horário, limites do Power BI e como contornei cada desafio.
+
+* [**Bibliografia Científica**](./docs/bibliografia.md): Referências acadêmicas sobre constante dielétrica, lençol freático em vasos e conversão de luz (Lux para PPFD) que embasaram o código.
 
 ## 📐 Calibração e Regras de Negócio (Camada Gold)
 
@@ -97,26 +109,32 @@ Alguns dos sensores retornam valores brutos. Para gerar métricas amigáveis e *
    * **Fator de Conversão:** Utilizando a constante de aproximação para espectro de luz natural, a fórmula aplicada no dbt é `PPFD = Lux * 0.0185` (ou `Lux / 54`). Isso garante que a contagem de fótons seja biologicamente precisa para a regra de negócio da espécie cadastrada.
 
 3. **Enriquecimento Híbrido de Dados (Tabela Fato x Dimensão):** Os limites ideais de rega e luz para cada espécie são cruzados (`JOIN`) com as leituras. Utiliza-se a função `COALESCE` para priorizar a fonte primária (dicionário oficial ESALQ/USP em dbt seed) e usar a API Perenual apenas como *fallback*.
-  
-## 🧪 Qualidade de Dados e Governança (dbt)
-* **Documentação e Linhagem (DAG):** Dicionário de dados mapeado desde a origem (Bronze) até ao produto final (Gold). 
-  * 🔗 **[Clique aqui para acessar o Dicionário de Dados Interativo (dbt docs)](https://irpedro.github.io/ICF/)** gerado automaticamente via CI/CD (GitHub Actions).
-* **Testes Automatizados:** Validação de integridade (`unique`, `not_null`) aplicada diretamente nas camadas Silver e Gold através do ficheiro `schema.yml`.
 
-## 🤖 Automação e Alertas (Make.com + Telegram)
+## 🤖 Automação, Alertas e Chatbot (Make.com + Telegram)
 
-Para fechar o ciclo de dados (do hardware até a palma da mão), foi implementada uma camada de orquestração rodando 100% na nuvem utilizando o **Make.com**. A arquitetura foi desenhada no padrão *Scheduled Multiplexer* para otimizar o uso da infraestrutura gratuita, avaliando múltiplas regras de negócio em uma única execução.
+Para fechar o ciclo de dados (do hardware até a palma da mão), foi implementada uma camada de orquestração rodando 100% na nuvem utilizando o **Make.com**. A arquitetura possui duas frentes distintas: um pipeline de agendamento (*Scheduled Multiplexer*) e um aplicativo de mensagens bidirecional (*Webhook Router*).
 
-O fluxo é ativado a cada 6 horas e consome diretamente a Camada Gold do dbt (Supabase), ramificando-se em três rotas analíticas distintas:
+### 1. Rotinas Agendadas (Scheduled Multiplexer)
+O fluxo autônomo é ativado a cada 6 horas e consome diretamente a Camada Gold do dbt (Supabase), ramificando-se em três rotas analíticas:
 
 * **Rota A (Observabilidade de Hardware):** Verifica a saúde da infraestrutura calculando o `minutos_offline` (Timestamp do Servidor vs. Último envio do ESP32). Dispara alertas críticos se a placa perder conexão Wi-Fi ou bateria.
-* **Rota B (Prevenção e Saúde da Planta):** Monitoriza regras de negócio críticas, como "Solo Seco". Possui um sistema integrado de *Cooldown* (usando Make Data Stores) que bloqueia envios repetidos por 12 horas, atuando como um filtro Anti-Spam.
-* **Rota C (Fechamento do Dia):** Protegida por um filtro de *Timezone* que só abre a catraca às 20h. Faz um `LEFT JOIN` on-the-fly entre a foto de momento (tabela granulada) e as agregações do dbt (tabela diária), enviando um boletim completo com:
-    * Máximas e Mínimas do dia (Temperatura e Umidade).
-    * *Daily Light Integral* (Horas de Sol Útil e Diagnóstico de Saúde Luminosa).
-    * Uptime real do sistema (% de confiabilidade dos dados nas últimas 24h).
 
-> 💡 **Nota de Reprodutibilidade:** Os cenários do Make.com e o Bot do Telegram possuem chaves de API privadas (Hardcoded Tokens) e não estão diretamente disponíveis no repositório. Para replicar este projeto, será necessário configurar o seu próprio *bot* via BotFather e conectar os webhooks da sua conta Make ao seu banco de dados PostgreSQL. Para conferir a estrutura visual dos cenários, consulte a pasta `/docs/images`.
+* **Rota B (Prevenção e Saúde da Planta):** Monitoriza regras de negócio críticas, como "Solo Seco" ou "Encharcado". Possui um sistema integrado de *Cooldown* (usando Make Data Stores) que bloqueia envios repetidos por 12 horas, atuando como um filtro Anti-Spam.
+
+* **Rota C (Fechamento do Dia):** Protegida por um filtro de *Timezone* que só abre a catraca às 20h. Avalia as agregações do dbt (tabela diária) enviando um boletim completo com:
+
+    * Médias, Máximas e Mínimas do dia (Temperatura e Umidade).
+    * *Daily Light Integral* (Horas de Sol Útil e Diagnóstico de Saúde Luminosa).
+    * Uptime real do sistema (% de confiabilidade dos dados do dia).
+
+### 2. Interface Interativa (Chatbot Bidirecional)
+O Telegram não atua apenas como um receptor de alertas, mas como uma interface de usuário completa. Configurado via *BotFather* e um Webhook permanente no Make.com, o sistema escuta o usuário 24/7 e responde a comandos instantâneos:
+
+* **Menu Interativo:** Ao acionar os botões do bot (ex: `/status` ou `/plantas`), o Make.com processa a requisição, realiza uma query *on-the-fly* no banco de dados e retorna o status em tempo real da planta, sem a necessidade de abrir o dashboard no computador.
+
+* **Acesso Rápido:** O comando `/links` centraliza o acesso fácil ao Power BI Mobile, repositório e documentações.
+
+> 💡 **Nota de Reprodutibilidade:** Os cenários do Make.com e o Bot do Telegram possuem chaves de API privadas (Hardcoded Tokens) e não estão diretamente disponíveis no repositório. Para replicar este projeto, será necessário configurar o seu próprio *bot* via BotFather e conectar os webhooks da sua conta Make ao seu banco de dados PostgreSQL. Para conferir a estrutura visual dos cenários, consulte a pasta `/assets/visual`.
 
 ## 🚀 Visão de Futuro e Escalabilidade
 
@@ -131,7 +149,7 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - **Provisionamento Self-service:** Interface para registo de novos sensores e mapeamento de espécies botânicas.
 - **Dashboards Dinâmicos:** Integração com Power BI através de filtragem dinâmica de parâmetros, permitindo que o utilizador visualize os dados específicos de cada sensor de forma isolada num único ambiente centralizado.
 
-## 🚀 Próximos Passos
+## 🚀 Próximos Passos (Completo)
 
 **Frente 1: Engenharia de Dados & dbt (Supabase)**
 - [x] **Ingestão Raw:** Tabela Bronze de *Log Append-Only* recebendo JSON do ESP32 via REST API.
