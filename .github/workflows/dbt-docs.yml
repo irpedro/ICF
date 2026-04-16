@@ -1,4 +1,4 @@
-name: Deploy dbt Docs to GitHub Pages
+name: CI/CD Pipeline (Testes & Docs)
 
 on:
   push:
