@@ -1,7 +1,5 @@
 # 🌿 Plant Sensor Analysis (ESP32 + Supabase)
 
-<br>
-
 [![Testes de Qualidade (dbt)](https://img.shields.io/github/actions/workflow/status/irpedro/ICF/dbt-docs.yml?label=Testes%20dbt&logo=github&logoColor=white)](https://github.com/irpedro/ICF/actions)
 [![Documentação dbt](https://img.shields.io/github/actions/workflow/status/irpedro/ICF/dbt-docs.yml?label=Docs%20dbt&logo=github&logoColor=white)](https://irpedro.github.io/ICF/)
 [![Release Automática](https://img.shields.io/github/actions/workflow/status/irpedro/ICF/auto-release.yml?label=Release&logo=github&logoColor=white)](https://github.com/irpedro/ICF/releases/latest)
