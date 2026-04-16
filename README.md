@@ -1,6 +1,19 @@
 # 🌿 Plant Sensor Analysis (ESP32 + Supabase)
 
+<br>
+
+![CI/CD Pipeline (dbt)](https://github.com/irpedro/ICF/actions/workflows/dbt-docs.yml/badge.svg)
+![Release Automática](https://github.com/irpedro/ICF/actions/workflows/auto-release.yml/badge.svg)
+
 Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do clima e umidade do solo, transmitindo os dados diretamente para um Data Lake na nuvem (Supabase/PostgreSQL) via API REST. O projeto adota a **Arquitetura Medalhão (Bronze, Silver, Gold)** e o paradigma **ELT (Extract, Load, Transform)** para garantir a qualidade, rastreabilidade e segurança dos dados.
+
+## Ferramentas
+
+![MicroPython](https://img.shields.io/badge/MicroPython-1A1A1A?style=for-the-badge&logo=python&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-1A1A1A?style=for-the-badge&logo=supabase&logoColor=3ECF8E)
+![dbt](https://img.shields.io/badge/dbt-1A1A1A?style=for-the-badge&logo=dbt&logoColor=FF694B)
+![Power BI](https://img.shields.io/badge/Power_BI-1A1A1A?style=for-the-badge&logo=powerbi&logoColor=F2C811)
+![Make.com](https://img.shields.io/badge/Make.com-1A1A1A?style=for-the-badge&logo=Make&logoColor=FF1692)
 
 ## 📊 Dashboard Interativo (Power BI)
 *Interaja com o relatório ao vivo abaixo. Utilize as setas no rodapé do painel para navegar entre as visões de Tempo Real, Resumo Tático (7 Dias) e Visão Estratégica Mensal.*
