@@ -1,0 +1,33 @@
+name: Gerador Automático de Release
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  build_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+    
+    steps:
+      - name: Baixando o código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Analisar Commits e Gerar Versão
+        id: gerador_tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch 
+          custom_release_rules: "docs:patch,chore:patch,refactor:patch"
+
+      - name: Publicar Release no GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.gerador_tag.outputs.new_tag }}
+          name: Versão ${{ steps.gerador_tag.outputs.new_tag }}
+          body: ${{ steps.gerador_tag.outputs.changelog }}
