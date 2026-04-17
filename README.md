@@ -4,7 +4,7 @@
 [![Documentação dbt](https://img.shields.io/github/actions/workflow/status/irpedro/ICF/dbt-docs.yml?label=Docs%20dbt&logo=github&logoColor=white)](https://irpedro.github.io/ICF/)
 [![Release Automática](https://img.shields.io/github/actions/workflow/status/irpedro/ICF/auto-release.yml?label=Release&logo=github&logoColor=white)](https://github.com/irpedro/ICF/releases/latest) 
 
-Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do clima, umidade do ar e umidade do solo e luminosidade, transmitindo os dados diretamente para um Data Lake na nuvem (Supabase/PostgreSQL) via API REST. O projeto adota a **Arquitetura Medalhão (Bronze, Silver, Gold)** e o paradigma **ELT (Extract, Load, Transform)** para garantir a qualidade, rastreabilidade e segurança dos dados.
+Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do clima, umidade do ar, umidade do solo e luminosidade, transmitindo os dados diretamente para um Data Lake na nuvem (Supabase/PostgreSQL) via API REST. O projeto adota a **Arquitetura Medalhão (Bronze, Silver, Gold)** e o paradigma **ELT (Extract, Load, Transform)** para garantir a qualidade, rastreabilidade e segurança dos dados.
 
 ## Ferramentas
 
