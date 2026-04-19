@@ -1,4 +1,4 @@
-# 🌿 Plant Sensor Analysis (ESP32 + Supabase)
+# 🌿 Plant Sensor Analysis
 
 [![Testes de Qualidade (dbt)](https://img.shields.io/github/actions/workflow/status/irpedro/ICF/dbt-docs.yml?label=Testes%20dbt&logo=github&logoColor=white)](https://github.com/irpedro/ICF/actions)
 [![Documentação dbt](https://img.shields.io/github/actions/workflow/status/irpedro/ICF/dbt-docs.yml?label=Docs%20dbt&logo=github&logoColor=white)](https://irpedro.github.io/ICF/)
@@ -6,7 +6,7 @@
 
 Este projeto de IoT e Engenharia de Dados realiza o monitoramento autônomo do clima, umidade do ar, umidade do solo e luminosidade, transmitindo os dados diretamente para um Data Lake na nuvem (Supabase/PostgreSQL) via API REST. O projeto adota a **Arquitetura Medalhão (Bronze, Silver, Gold)** e o paradigma **ELT (Extract, Load, Transform)** para garantir a qualidade, rastreabilidade e segurança dos dados.
 
-## Ferramentas
+## ⚙️ Ferramentas
 
 ![MicroPython](https://img.shields.io/badge/MicroPython-1A1A1A?style=for-the-badge&logo=python&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-1A1A1A?style=for-the-badge&logo=supabase&logoColor=3ECF8E)
@@ -98,7 +98,7 @@ Alguns dos sensores retornam valores brutos. Para gerar métricas amigáveis e *
    
     * **A Ilusão da Água Pura (O Teto Relativo):** A água pura possui uma constante elétrica altíssima ($\kappa \approx 80$). A calibração padrão de mercado (água pura = 100%) "esmaga" a escala de leitura. Na escala científica VWC (*Conteúdo Volumétrico de Água*), a terra atinge saturação máxima ("lama") com cerca de 45% de volume de água (que possui um $\kappa$ muito menor que a água pura). Calibrar o limite na água pura tornava metade da capacidade analítica do gráfico inútil.
    
-    * **Volume vs. Força (O Ponto Cego do Sensor):** Artigos de agricultura profissional alertam que sensores capacitivos medem apenas o *Volume* de água. No entanto, a planta sobrevive baseada no *Potencial Matricial* (a força necessária para sugar a água do solo). Por exemplo, 30% de água numa terra arenosa é fácil de absorver, mas 30% de água numa argila densa mata a planta de sede, pois a argila "prende" as moléculas de água. O nosso hardware IoT de baixo custo não tem capacidade física para ler essa força.
+    * **Volume vs. Força (O Ponto Cego do Sensor):** Artigos de agricultura profissional alertam que sensores capacitivos medem apenas o *Volume* de água (VWC - Volumetric Water Content). No entanto, a planta sobrevive baseada no *Potencial Matricial* (a força necessária para sugar a água do solo ou Tensão da Água no Solo). Por exemplo, 30% de água numa terra arenosa é fácil de absorver, mas 30% de água numa argila densa mata a planta de sede, pois a argila "prende" as moléculas de água. O nosso hardware IoT de baixo custo não tem capacidade física para ler essa força.
    
     * **O Pivot de Engenharia (A Calibração na Lama):** Para mitigar essas limitações físicas sem encarecer o projeto com tensiômetros e sensores profissionais, descartamos a calibração na água e calibramos o sensor na lama do **próprio substrato**. Isso converteu a leitura para uma **Escala Relativa Otimizada** (onde 100% = saturação máxima daquele solo específico), garantindo gráficos de alta resolução. Assim, a regra de três invertida na Camada Gold ficou travada em:
 
