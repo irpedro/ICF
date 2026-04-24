@@ -105,8 +105,8 @@ try:
             }
         }
         
-        # 3. Dispara para a nuvem
-        res = urequests.post(SUPABASE_URL_COMPLETA, headers=HEADERS, json=payload)
+        # 3. Dispara para a nuvem (espera até 30 segundos para evitar timeouts)
+        res = urequests.post(SUPABASE_URL_COMPLETA, headers=HEADERS, json=payload, timeout=30)
         
         if res.status_code == 201:
             piscar_led()
