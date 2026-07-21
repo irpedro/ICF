@@ -162,3 +162,19 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - **Provisionamento Self-service:** Interface para registo de novos sensores e mapeamento de espécies botânicas.
 
 - **Dashboards Dinâmicos:** Integração com Power BI através de filtragem dinâmica de parâmetros, permitindo que o utilizador visualize os dados específicos de cada sensor de forma isolada num único ambiente centralizado.
+
+## Tentativas de Conexão e Problemas Encontrados
+1. Alimentação direta da LED com o ESP
+Removeu-se a lâmpada e conectou-se a saída da bateria diretamente ao pino 5V do ESP. A LED não acendeu e o microcontrolador não inicializou, evidenciando que a tensão fornecida (~2,8 V) estava abaixo do mínimo necessário para o regulador de bordo.
+2. Uso do pino 3V3
+Ao ligar a bateria no pino 3V3, a LED acendeu e o ESP chegou a ligar, porém com extrema instabilidade: reinicializações constantes e falhas na conexão da rede. A corrente disponível era insuficiente para sustentar o consumo.
+3. Tentativa de carregamento contínuo com o painel solar
+Conectou-se o painel solar à bateria para mantê-la carregada durante o dia. Observou-se que a bateria descarregava rapidamente assim que o ESP entrava em operação, mesmo com o painel exposto à luz solar direta. A energia gerada era claramente insuficiente para cobrir o consumo médio do dispositivo e, sobretudo, para armazenar carga suficiente que garantisse a operação noturna.
+4. Substituição por bateria de maior capacidade (4 V)
+Abandonou-se o painel solar e testou-se uma bateria com tensão nominal de 4 V. Apesar do valor mais alto, o ESP continuou apresentando falhas de inicialização tanto no pino 5V quanto no 3V3. A instabilidade persistiu, possivelmente devido à queda de tensão sob carga ou à incompatibilidade com a bateria usada.
+## Solução Adotada e Conclusão
+Diante das limitações dos painéis solares de baixo custo e das baterias disponíveis, optou-se por descartar a solução fotovoltaica. A alimentação definitiva do sistema passou a ser feita por:
+Powerbank portátil com capacidade adequada para dias de operação contínua, ou
+Cabo USB diretamente conectado a uma fonte de alimentação de parede ou porta USB de computador.
+Essa escolha garante tensão estável, corrente suficiente para os picos de transmissão Wi-Fi e elimina as reinicializações inesperadas. Embora a energia solar seja uma meta desejável para projetos remotos, a implementação com componentes de baixo custo mostrou-se inviável neste contexto, exigindo painéis de maior eficiência, baterias com capacidade e tensão adequadas e um sistema de gerenciamento de carga mais robusto.
+
