@@ -162,3 +162,17 @@ Para eliminar a necessidade de configuração via SQL por parte do utilizador, e
 - **Provisionamento Self-service:** Interface para registo de novos sensores e mapeamento de espécies botânicas.
 
 - **Dashboards Dinâmicos:** Integração com Power BI através de filtragem dinâmica de parâmetros, permitindo que o utilizador visualize os dados específicos de cada sensor de forma isolada num único ambiente centralizado.
+
+## ☀️ Experiência com Painel Solar para Alimentação do ESP32
+
+Durante o desenvolvimento do projeto, foi realizada uma tentativa de tornar o dispositivo energeticamente autossuficiente por meio da utilização de energia solar fotovoltaica. A principal motivação dessa abordagem foi reduzir a dependência de fontes externas de alimentação, como tomadas e powerbanks, possibilitando que o ESP32 fosse instalado em locais remotos ou de difícil acesso, onde não há infraestrutura elétrica disponível. Dessa forma, esperava-se aumentar a autonomia do sistema e facilitar sua aplicação em diferentes cenários.
+
+### 1. 🔋 Estrutura dos Painéis Solares Utilizados
+
+Para a realização dos testes, foram utilizados dois painéis solares reaproveitados de luminárias solares de parede de baixo custo. Antes da integração com o ESP32, foi feita uma análise das características de cada unidade, permitindo compreender seu funcionamento e avaliar sua viabilidade para o projeto.
+
+O primeiro painel possuía uma bateria interna responsável por armazenar a energia gerada durante o período de exposição ao sol. Essa energia era utilizada para alimentar uma lâmpada LED, cujo acionamento era realizado por meio de um interruptor manual.
+
+O segundo painel apresentava uma estrutura semelhante à do primeiro, porém contava com um sistema de acionamento automático baseado em um sensor de proximidade, eliminando a necessidade do interruptor manual para o funcionamento da luminária.
+
+Em ambos os casos, verificou-se que a tensão nominal fornecida pelas baterias era de aproximadamente 2,8 V. Esse valor mostrou-se insuficiente para alimentar diretamente o ESP32, que necessita de uma tensão superior para operar de maneira estável, tornando necessária a utilização de uma solução complementar para adequar a alimentação elétrica do dispositivo.
