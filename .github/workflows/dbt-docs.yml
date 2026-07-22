@@ -26,7 +26,7 @@ jobs:
           key: ${{ runner.os }}-pip-dbt-postgres-1.10
 
       - name: Instalar dbt-postgres
-        run: pip install dbt-postgres==1.10.0
+        run: pip install dbt-core==1.10.0 dbt-postgres==1.10.0
 
       - name: Configurar conexão com o Supabase (profiles.yml)
         run: |
